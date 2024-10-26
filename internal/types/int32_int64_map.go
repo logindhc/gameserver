@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	cherryMapStructure "github.com/cherry-game/cherry/extend/mapstructure"
+	cherryMapStructure "gameserver/cherry/extend/mapstructure"
 	"github.com/spf13/cast"
 	"reflect"
 )

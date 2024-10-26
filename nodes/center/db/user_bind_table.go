@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gameserver/internal/guid"
 
-	cherryTime "github.com/cherry-game/cherry/extend/time"
+	cherryTime "gameserver/cherry/extend/time"
 )
 
 // UserBindTable uid绑定第三方平台表

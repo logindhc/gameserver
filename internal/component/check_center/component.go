@@ -4,8 +4,8 @@ import (
 	rpcCenter "gameserver/internal/rpc/center"
 	"time"
 
-	cherryFacade "github.com/cherry-game/cherry/facade"
-	cherryLogger "github.com/cherry-game/cherry/logger"
+	cherryFacade "gameserver/cherry/facade"
+	cherryLogger "gameserver/cherry/logger"
 )
 
 // Component 启动时,检查center节点是否存活

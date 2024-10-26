@@ -5,9 +5,9 @@ import (
 	"gameserver/nodes/game/module/online"
 	"time"
 
-	cfacade "github.com/cherry-game/cherry/facade"
-	clog "github.com/cherry-game/cherry/logger"
-	"github.com/cherry-game/cherry/net/parser/pomelo"
+	cfacade "gameserver/cherry/facade"
+	clog "gameserver/cherry/logger"
+	"gameserver/cherry/net/parser/pomelo"
 )
 
 type (

@@ -1,9 +1,9 @@
 package data
 
 import (
+	cherryError "gameserver/cherry/error"
+	cherryLogger "gameserver/cherry/logger"
 	"gameserver/internal/code"
-	cherryError "github.com/cherry-game/cherry/error"
-	cherryLogger "github.com/cherry-game/cherry/logger"
 )
 
 type (

@@ -1,11 +1,11 @@
 package sdk
 
 import (
+	cherryGin "gameserver/cherry/components/gin"
+	cherryError "gameserver/cherry/error"
+	cherryString "gameserver/cherry/extend/string"
+	cfacade "gameserver/cherry/facade"
 	"gameserver/internal/data"
-	cherryGin "github.com/cherry-game/cherry/components/gin"
-	cherryError "github.com/cherry-game/cherry/error"
-	cherryString "github.com/cherry-game/cherry/extend/string"
-	cfacade "github.com/cherry-game/cherry/facade"
 )
 
 // sdk平台类型

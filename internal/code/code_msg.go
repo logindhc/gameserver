@@ -1,7 +1,7 @@
 package code
 
 import (
-	cherryCode "github.com/cherry-game/cherry/code"
+	cherryCode "gameserver/cherry/code"
 	"sync"
 )
 

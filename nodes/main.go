@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	cherryConst "gameserver/cherry/const"
 	"gameserver/nodes/center"
 	"gameserver/nodes/game"
 	"gameserver/nodes/gate"
@@ -9,8 +10,6 @@ import (
 	"gameserver/nodes/web"
 	"github.com/urfave/cli/v2"
 	"os"
-
-	cherryConst "github.com/cherry-game/cherry/const"
 )
 
 func main() {

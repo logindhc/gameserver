@@ -2,16 +2,15 @@ package gate
 
 import (
 	"encoding/binary"
+	"gameserver/cherry"
+	cherryGops "gameserver/cherry/components/gops"
+	cfacade "gameserver/cherry/facade"
+	cconnector "gameserver/cherry/net/connector"
+	"gameserver/cherry/net/parser/pomelo"
+	"gameserver/cherry/net/parser/simple"
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/data"
 	"time"
-
-	"github.com/cherry-game/cherry"
-	cherryGops "github.com/cherry-game/cherry/components/gops"
-	cfacade "github.com/cherry-game/cherry/facade"
-	cconnector "github.com/cherry-game/cherry/net/connector"
-	"github.com/cherry-game/cherry/net/parser/pomelo"
-	"github.com/cherry-game/cherry/net/parser/simple"
 )
 
 // Run 运行gate节点

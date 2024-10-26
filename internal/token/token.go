@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"gameserver/internal/code"
 
-	cherryCrypto "github.com/cherry-game/cherry/extend/crypto"
-	cherryTime "github.com/cherry-game/cherry/extend/time"
-	cherryLogger "github.com/cherry-game/cherry/logger"
+	cherryCrypto "gameserver/cherry/extend/crypto"
+	cherryTime "gameserver/cherry/extend/time"
+	cherryLogger "gameserver/cherry/logger"
 )
 
 const (

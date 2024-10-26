@@ -1,14 +1,14 @@
 package controller
 
 import (
+	cherryGin "gameserver/cherry/components/gin"
+	cherryString "gameserver/cherry/extend/string"
+	cherryLogger "gameserver/cherry/logger"
 	"gameserver/internal/code"
 	"gameserver/internal/data"
 	rpcCenter "gameserver/internal/rpc/center"
 	"gameserver/internal/token"
 	"gameserver/nodes/web/sdk"
-	cherryGin "github.com/cherry-game/cherry/components/gin"
-	cherryString "github.com/cherry-game/cherry/extend/string"
-	cherryLogger "github.com/cherry-game/cherry/logger"
 )
 
 type Controller struct {

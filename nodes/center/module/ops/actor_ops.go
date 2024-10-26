@@ -1,9 +1,9 @@
 package ops
 
 import (
+	cactor "gameserver/cherry/net/actor"
 	"gameserver/internal/code"
 	"gameserver/internal/pb"
-	cactor "github.com/cherry-game/cherry/net/actor"
 )
 
 var (

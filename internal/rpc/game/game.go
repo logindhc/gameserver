@@ -5,9 +5,9 @@ import (
 	"gameserver/internal/pb"
 	sessionKey "gameserver/internal/session_key"
 
-	cfacade "github.com/cherry-game/cherry/facade"
-	clog "github.com/cherry-game/cherry/logger"
-	cproto "github.com/cherry-game/cherry/net/proto"
+	cfacade "gameserver/cherry/facade"
+	clog "gameserver/cherry/logger"
+	cproto "gameserver/cherry/net/proto"
 )
 
 const (

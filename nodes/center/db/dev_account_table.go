@@ -1,12 +1,12 @@
 package db
 
 import (
+	cherryError "gameserver/cherry/error"
+	cherryString "gameserver/cherry/extend/string"
+	cherryTime "gameserver/cherry/extend/time"
+	cherryLogger "gameserver/cherry/logger"
 	"gameserver/internal/code"
 	"gameserver/internal/guid"
-	cherryError "github.com/cherry-game/cherry/error"
-	cherryString "github.com/cherry-game/cherry/extend/string"
-	cherryTime "github.com/cherry-game/cherry/extend/time"
-	cherryLogger "github.com/cherry-game/cherry/logger"
 )
 
 // DevAccountTable 开发模式的帐号信息表(platform.TypeDevMode)

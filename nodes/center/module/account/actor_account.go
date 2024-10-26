@@ -6,7 +6,7 @@ import (
 	"gameserver/nodes/center/db"
 	"strings"
 
-	cactor "github.com/cherry-game/cherry/net/actor"
+	cactor "gameserver/cherry/net/actor"
 )
 
 type (

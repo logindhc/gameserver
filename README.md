@@ -21,10 +21,10 @@
 
 ## 准备
 
-- `git clone https://github.com/cherry-game/cherry.git`
+- `git clone https://cherry.git`
 - 或者点击github.com页面的`code`按钮`Download zip`下载源码包
 - 打开项目源码，找到`demo_cluster`目录
-- 请参考[环境安装与配置](https://github.com/cherry-game/cherry/blob/master/_docs/env-setup.md) 进行准备工作
+- 请参考[环境安装与配置](https://gameserver/cherry/blob/master/_docs/env-setup.md) 进行准备工作
 
 ## 启动与调试
 

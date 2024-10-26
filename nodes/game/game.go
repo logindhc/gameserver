@@ -1,16 +1,16 @@
 package game
 
 import (
+	"gameserver/cherry"
+	cherryCron "gameserver/cherry/components/cron"
+	cherryGops "gameserver/cherry/components/gops"
+	cherrySnowflake "gameserver/cherry/extend/snowflake"
+	cstring "gameserver/cherry/extend/string"
+	cherryUtils "gameserver/cherry/extend/utils"
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/data"
 	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/module/player"
-	"github.com/cherry-game/cherry"
-	cherryCron "github.com/cherry-game/cherry/components/cron"
-	cherryGops "github.com/cherry-game/cherry/components/gops"
-	cherrySnowflake "github.com/cherry-game/cherry/extend/snowflake"
-	cstring "github.com/cherry-game/cherry/extend/string"
-	cherryUtils "github.com/cherry-game/cherry/extend/utils"
 )
 
 func Run(profileFilePath, nodeId string) {

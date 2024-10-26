@@ -1,8 +1,8 @@
 package online
 
 import (
-	cherryFacade "github.com/cherry-game/cherry/facade"
-	clog "github.com/cherry-game/cherry/logger"
+	cherryFacade "gameserver/cherry/facade"
+	clog "gameserver/cherry/logger"
 	"sync"
 )
 

@@ -7,11 +7,11 @@ import (
 	"math/rand"
 	"time"
 
-	cherryError "github.com/cherry-game/cherry/error"
-	cherryHttp "github.com/cherry-game/cherry/extend/http"
-	cherryTime "github.com/cherry-game/cherry/extend/time"
-	cherryLogger "github.com/cherry-game/cherry/logger"
-	cherryClient "github.com/cherry-game/cherry/net/parser/pomelo/client"
+	cherryError "gameserver/cherry/error"
+	cherryHttp "gameserver/cherry/extend/http"
+	cherryTime "gameserver/cherry/extend/time"
+	cherryLogger "gameserver/cherry/logger"
+	cherryClient "gameserver/cherry/net/parser/pomelo/client"
 	jsoniter "github.com/json-iterator/go"
 )
 

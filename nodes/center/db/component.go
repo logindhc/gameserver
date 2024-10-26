@@ -1,9 +1,9 @@
 package db
 
 import (
-	cherryUtils "github.com/cherry-game/cherry/extend/utils"
-	cherryFacade "github.com/cherry-game/cherry/facade"
-	cherryLogger "github.com/cherry-game/cherry/logger"
+	cherryUtils "gameserver/cherry/extend/utils"
+	cherryFacade "gameserver/cherry/facade"
+	cherryLogger "gameserver/cherry/logger"
 )
 
 var (

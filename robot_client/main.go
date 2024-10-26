@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	chttp "github.com/cherry-game/cherry/extend/http"
-	ctime "github.com/cherry-game/cherry/extend/time"
-	clog "github.com/cherry-game/cherry/logger"
-	pomeloClient "github.com/cherry-game/cherry/net/parser/pomelo/client"
+	chttp "gameserver/cherry/extend/http"
+	ctime "gameserver/cherry/extend/time"
+	clog "gameserver/cherry/logger"
+	pomeloClient "gameserver/cherry/net/parser/pomelo/client"
 
 	jsoniter "github.com/json-iterator/go"
 )

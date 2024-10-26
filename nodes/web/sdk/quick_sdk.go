@@ -1,14 +1,14 @@
 package sdk
 
 import (
+	cherryGin "gameserver/cherry/components/gin"
+	cerror "gameserver/cherry/error"
+	cherryHttp "gameserver/cherry/extend/http"
+	cstring "gameserver/cherry/extend/string"
+	cherryLogger "gameserver/cherry/logger"
 	"gameserver/internal/code"
 	"gameserver/internal/data"
 	sessionKey "gameserver/internal/session_key"
-	cherryGin "github.com/cherry-game/cherry/components/gin"
-	cerror "github.com/cherry-game/cherry/error"
-	cherryHttp "github.com/cherry-game/cherry/extend/http"
-	cstring "github.com/cherry-game/cherry/extend/string"
-	cherryLogger "github.com/cherry-game/cherry/logger"
 )
 
 type (

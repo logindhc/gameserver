@@ -1,14 +1,14 @@
 package web
 
 import (
+	"gameserver/cherry"
+	cherryCron "gameserver/cherry/components/cron"
+	cherryGin "gameserver/cherry/components/gin"
+	cherryFile "gameserver/cherry/extend/file"
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/data"
 	"gameserver/nodes/web/controller"
 	"gameserver/nodes/web/sdk"
-	"github.com/cherry-game/cherry"
-	cherryCron "github.com/cherry-game/cherry/components/cron"
-	cherryGin "github.com/cherry-game/cherry/components/gin"
-	cherryFile "github.com/cherry-game/cherry/extend/file"
 	"github.com/gin-gonic/gin"
 )
 
