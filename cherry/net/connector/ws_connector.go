@@ -54,7 +54,14 @@ func NewWS(address string, opts ...Option) *WSConnector {
 		upgrade: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
-			CheckOrigin: func(_ *http.Request) bool {
+			CheckOrigin: func(r *http.Request) bool {
+				//auth := r.Header.Get("Authorization")
+				//auth := r.FormValue("Authorization")
+				//if auth == "" {
+				//	clog.Warn("Authorization is null.")
+				//	return false
+				//}
+				//clog.Debug("Authorization:", auth)
 				return true
 			},
 		},
