@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 	goStrings "strings"
+	"unicode"
 )
 
 // CutLastString 截取字符串中最后一段，以@beginChar开始,@endChar结束的字符
@@ -144,4 +145,20 @@ func SplitIndex(s, sep string, index int) (string, bool) {
 		return "", false
 	}
 	return ret[index], true
+}
+
+// CamelToSnake 将驼峰命名转换为下划线命名
+func CamelToSnake(s string) string {
+	var result []rune
+	for i, r := range s {
+		if unicode.IsUpper(r) {
+			if i > 0 && !(s == "ID" && i == 1) { // 特殊处理 ID
+				result = append(result, '_')
+			}
+			result = append(result, unicode.ToLower(r))
+		} else {
+			result = append(result, r)
+		}
+	}
+	return string(result)
 }

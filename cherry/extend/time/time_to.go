@@ -1,6 +1,7 @@
 package cherryTime
 
 import (
+	"fmt"
 	"time"
 
 	cstring "gameserver/cherry/extend/string"
@@ -64,6 +65,18 @@ func (c CherryTime) ToShortDateFormat() string {
 // ToShortIntDateFormat 20060102
 func (c CherryTime) ToShortIntDateFormat() int32 {
 	strDate := c.ToShortDateFormat()
+	intDate, _ := cstring.ToInt32(strDate)
+	return intDate
+}
+
+// ToShortMonthFormat 200601
+func (c CherryTime) ToShortMonthFormat() string {
+	return fmt.Sprintf("%04d%02d", c.Time.Year(), c.Time.Month())
+}
+
+// ToShortIntMonthFormat 200601
+func (c CherryTime) ToShortIntMonthFormat() int32 {
+	strDate := c.ToShortMonthFormat()
 	intDate, _ := cstring.ToInt32(strDate)
 	return intDate
 }
