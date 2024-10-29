@@ -1,7 +1,9 @@
 package player
 
 import (
+	ctime "gameserver/cherry/extend/time"
 	"gameserver/internal/event"
+	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/module/online"
 	"time"
 
@@ -51,6 +53,17 @@ func (p *ActorPlayers) onLoginEvent(e cfacade.IEventData) {
 	if ok == false {
 		return
 	}
+	cherryTime := ctime.Now()
+	second := cherryTime.ToSecond()
+	total := 1
+	dotLogin := db.DotLogin{
+		ID:         evt.PlayerId,
+		FirstTime:  &second,
+		LastTime:   &second,
+		DayIndex:   cherryTime.ToShortIntDateFormat(),
+		TotalCount: &total,
+	}
+	db.DotLoginRepository.Add(&dotLogin)
 
 	clog.Infof("[PlayerLoginEvent] [playerId = %d, onlineCount = %d]",
 		evt.PlayerId,

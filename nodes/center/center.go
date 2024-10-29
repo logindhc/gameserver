@@ -3,6 +3,7 @@ package center
 import (
 	"gameserver/cherry"
 	"gameserver/cherry/components/cron"
+	cherrySnowflake "gameserver/cherry/extend/snowflake"
 	"gameserver/internal/data"
 	"gameserver/nodes/center/db"
 	"gameserver/nodes/center/module/account"
@@ -17,6 +18,8 @@ func Run(profileFilePath, nodeId string) {
 		cherry.Cluster,
 	)
 
+	cherrySnowflake.InitDefaultNode(nodeId)
+
 	app.Register(cherryCron.New())
 	app.Register(data.New())
 	app.Register(db.New())
@@ -27,4 +30,5 @@ func Run(profileFilePath, nodeId string) {
 	)
 
 	app.Startup()
+
 }

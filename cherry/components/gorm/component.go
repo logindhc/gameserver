@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	Name = "gorm_component"
-	dsn  = "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local"
+	Name         = "gorm_component"
+	dsn          = "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local&timeout=5s"
+	DEFAULT, LOG = "default", "log"
 )
 
 type (
@@ -172,6 +173,66 @@ func (s *Component) GetHashDb(groupId string, hashFn HashDb) (*gorm.DB, bool) {
 func (s *Component) GetDbMap(groupId string) (map[string]*gorm.DB, bool) {
 	dbGroup, found := s.ormMap[groupId]
 	return dbGroup, found
+}
+
+func (c *Component) GetGameDB() *gorm.DB {
+	dbIdList := c.App().Settings().Get("db_id_list")
+	for _, key := range dbIdList.Keys() {
+		if key == DEFAULT {
+			db := c.GetDb(dbIdList.Get(key).ToString())
+			return db
+		}
+	}
+	clog.Panic("default db not found")
+	return nil
+}
+
+func (c *Component) GetLogDB() *gorm.DB {
+	dbIdList := c.App().Settings().Get("db_id_list")
+	for _, key := range dbIdList.Keys() {
+		if key == LOG {
+			db := c.GetDb(dbIdList.Get(key).ToString())
+			return db
+		}
+	}
+	clog.Panic("log db not found")
+	return nil
+}
+
+func (s *Component) AutoMigrate(models []interface{}, logModels []interface{}) {
+	dbIdList := s.App().Settings().Get("db_id_list")
+	if models != nil {
+		for _, model := range models {
+			for _, key := range dbIdList.Keys() {
+				if key == DEFAULT {
+					db := s.GetDb(dbIdList.Get(key).ToString())
+					if db != nil {
+						err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci").AutoMigrate(model)
+						if err != nil {
+							clog.Panic(err)
+						}
+					}
+				}
+			}
+		}
+	}
+	if logModels != nil {
+		for _, model := range logModels {
+			for _, key := range dbIdList.Keys() {
+				if key == LOG {
+					db := s.GetDb(dbIdList.Get(key).ToString())
+					if db != nil {
+						err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci").AutoMigrate(model)
+						if err != nil {
+							clog.Panic(err)
+						}
+					}
+				}
+			}
+		}
+		return
+	}
+	clog.Debugf("persistence autoMigrate success auto -> game:%d log: %d", len(models), len(logModels))
 }
 
 func (s *mySqlConfig) GetDSN() string {

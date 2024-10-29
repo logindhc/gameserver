@@ -94,8 +94,6 @@ type SqlFieldStruct struct {
 
 // Flush 方法实现
 func (d *LoggerBuffer[K, T]) Flush() {
-	d.locker.Lock()
-	defer d.locker.Unlock()
 	d.flush()
 }
 func (d *LoggerBuffer[K, T]) flush() {
@@ -104,17 +102,18 @@ func (d *LoggerBuffer[K, T]) flush() {
 	}
 	size := d.queue.Size()
 	clog.Debugf("%s# batch add num %d \n", d.prefix, size)
-	//logger.Logger.Info(fmt.Sprintf("%s# batch add num %d", d.prefix, size))
-	flushList := make([]T, size)
+	d.locker.Lock()
+	var entities []T
 	for i := 0; i < size; i++ {
-		dequeue, ok := d.queue.Dequeue()
+		entity, ok := d.queue.Dequeue()
 		if !ok {
 			break
 		}
-		flushList[i] = dequeue
+		entities = append(entities, entity)
 	}
+	d.locker.Unlock()
 	var sqlBuilder strings.Builder
-	for _, entity := range flushList {
+	for _, entity := range entities {
 		//先反射获取对应标记生成的sql
 		entityType := reflect.TypeOf(entity)
 		entityValue := reflect.ValueOf(entity)
@@ -127,7 +126,7 @@ func (d *LoggerBuffer[K, T]) flush() {
 		for i := 0; i < len(temp); i++ {
 			field := temp[i]
 			if field.isNull {
-				return
+				continue
 			}
 			if field.isMonthShared {
 				monthShardingVal = field.fieldVal.(int)
@@ -161,7 +160,7 @@ func (d *LoggerBuffer[K, T]) flush() {
 		clog.Errorf("%s# batch add error %s", d.prefix, tx.Error.Error())
 		return
 	}
-	//logger.Logger.Info(fmt.Sprintf("%s# batch  add num %d", d.prefix, size))
+	clog.Infof("%s# batch add num %d success", d.prefix, size)
 }
 
 func processField(entityType reflect.Type, entityValue reflect.Value, i int) SqlFieldStruct {

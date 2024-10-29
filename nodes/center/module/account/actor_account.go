@@ -56,7 +56,7 @@ func (p *ActorAccount) getDevAccount(req *pb.DevRegister) (*pb.Int64, int32) {
 		return nil, code.AccountAuthFail
 	}
 
-	return &pb.Int64{Value: devAccount.AccountId}, code.OK
+	return &pb.Int64{Value: devAccount.ID}, code.OK
 }
 
 // getUID 获取uid

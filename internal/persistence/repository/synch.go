@@ -54,8 +54,7 @@ func (r *SynchRepository[K, T]) Add(entity *T) *T {
 	}
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
-	r.buffer.Add(entity)
-	return entity
+	return r.buffer.Add(entity)
 }
 
 func (r *SynchRepository[K, T]) Remove(id K) {

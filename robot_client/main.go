@@ -24,7 +24,7 @@ var (
 	printLog          = false                   // 是否输出详细日志
 )
 
-func main() {
+func main2() {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 

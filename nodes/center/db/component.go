@@ -1,31 +1,39 @@
 package db
 
 import (
+	cherryGORM "gameserver/cherry/components/gorm"
 	cherryUtils "gameserver/cherry/extend/utils"
-	cherryFacade "gameserver/cherry/facade"
 	cherryLogger "gameserver/cherry/logger"
+	"gameserver/internal/persistence"
 )
 
 var (
 	onLoadFuncList []func() // db初始化时加载函数列表
+	database       *Component
+
+	defaultModels = []interface{}{
+		&DevAccountTable{},
+		&UserBindTable{},
+	}
 )
 
 type Component struct {
-	cherryFacade.Component
+	*cherryGORM.Component
 }
 
 func (c *Component) Name() string {
 	return "db_center_component"
 }
 
-// Init 组件初始化函数
-// 为了简化部署的复杂性，本示例取消了数据库连接相关的逻辑
 func (c *Component) Init() {
+	c.Component.Init()
 }
 
 func (c *Component) OnAfterInit() {
-	addOnload(loadDevAccount)
+	c.AutoMigrate(defaultModels, nil)
+	persistence.Start(defaultModels)
 
+	addOnload(loadDevAccount)
 	for _, fn := range onLoadFuncList {
 		cherryUtils.Try(fn, func(errString string) {
 			cherryLogger.Warnf(errString)
@@ -34,11 +42,13 @@ func (c *Component) OnAfterInit() {
 }
 
 func (*Component) OnStop() {
-	//组件停止时触发逻辑
+	persistence.Stop()
 }
 
 func New() *Component {
-	return &Component{}
+	c := &Component{cherryGORM.NewComponent()}
+	database = c
+	return c
 }
 
 func addOnload(fn func()) {

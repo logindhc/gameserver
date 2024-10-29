@@ -62,10 +62,17 @@ func (c CherryTime) ToShortDateFormat() string {
 	return c.Format(ShortDateFormat)
 }
 
-// ToShortIntDateFormat 20060102
-func (c CherryTime) ToShortIntDateFormat() int32 {
+// ToShortInt32DateFormat 20060102
+func (c CherryTime) ToShortInt32DateFormat() int32 {
 	strDate := c.ToShortDateFormat()
 	intDate, _ := cstring.ToInt32(strDate)
+	return intDate
+}
+
+// ToShortIntDateFormat 20060102
+func (c CherryTime) ToShortIntDateFormat() int {
+	strDate := c.ToShortDateFormat()
+	intDate, _ := cstring.ToInt(strDate)
 	return intDate
 }
 

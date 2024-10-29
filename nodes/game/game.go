@@ -8,6 +8,7 @@ import (
 	cstring "gameserver/cherry/extend/string"
 	cherryUtils "gameserver/cherry/extend/utils"
 	checkCenter "gameserver/internal/component/check_center"
+	"gameserver/internal/component/redis"
 	"gameserver/internal/data"
 	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/module/player"
@@ -35,6 +36,8 @@ func Run(profileFilePath, nodeId string) {
 	app.Register(checkCenter.New())
 	// 注册db组件
 	app.Register(db.New())
+	// 注册redis组件
+	app.Register(redis.New())
 
 	app.AddActors(
 		&player.ActorPlayers{},

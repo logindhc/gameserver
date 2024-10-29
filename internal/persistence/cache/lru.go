@@ -25,7 +25,7 @@ func (l *LRUCache[K, V]) Get(id K) *V {
 }
 
 func (l *LRUCache[K, V]) Put(id K, value *V) *V {
-	l.Put(id, value)
+	l.Cache.Put(id, value)
 	return value
 }
 

@@ -19,8 +19,7 @@ type (
 	actorPlayer struct {
 		pomelo.ActorBase
 		isOnline bool // 玩家是否在线
-		playerId int64
-		uid      int64
+		id       int64
 	}
 )
 
@@ -41,27 +40,22 @@ func (p *actorPlayer) OnStop() {
 
 // sessionClose 接收角色session关闭处理
 func (p *actorPlayer) sessionClose() {
-	online.UnBindPlayer(p.uid)
+	online.UnBindPlayer(p.id)
 	p.isOnline = false
 	p.Exit()
 
-	clog.Debugf("[actorPlayer] exit! uis = %d", p.uid)
+	clog.Debugf("[actorPlayer] exit! id = %d", p.id)
 }
 
 // playerSelect 玩家查询角色列表
 func (p *actorPlayer) playerSelect(session *cproto.Session, _ *pb.None) {
 	response := &pb.PlayerSelectResponse{}
-
-	playerId := db.GetPlayerIdWithUID(session.Uid)
-	if playerId > 0 {
-		// 游戏设定单服单角色，协议设计成可返回多角色
-		playerTable, found := db.GetPlayerTable(playerId)
-		if found {
-			playerInfo := buildPBPlayer(playerTable)
-			response.List = append(response.List, &playerInfo)
-		}
+	// 游戏设定单服单角色，协议设计成可返回多角色
+	playerTable := db.PlayerRepository.Get(session.Uid)
+	if playerTable != nil {
+		playerInfo := buildPBPlayer(playerTable)
+		response.List = append(response.List, &playerInfo)
 	}
-
 	p.Response(session, response)
 }
 
@@ -74,12 +68,6 @@ func (p *actorPlayer) playerCreate(session *cproto.Session, req *pb.PlayerCreate
 
 	// 检查玩家昵称
 	if len(req.PlayerName) < 1 {
-		p.ResponseCode(session, code.PlayerCreateFail)
-		return
-	}
-
-	// 帐号是否已经在当前游戏服存在角色
-	if db.GetPlayerIdWithUID(session.Uid) > 0 {
 		p.ResponseCode(session, code.PlayerCreateFail)
 		return
 	}
@@ -102,7 +90,7 @@ func (p *actorPlayer) playerCreate(session *cproto.Session, req *pb.PlayerCreate
 	// TODO 更新最后一次登陆的角色信息到中心节点
 
 	// 抛出角色创建事件
-	playerCreateEvent := event.NewPlayerCreate(newPlayerTable.PlayerId, req.PlayerName, req.Gender)
+	playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, req.PlayerName, req.Gender)
 	p.PostEvent(&playerCreateEvent)
 
 	playerInfo := buildPBPlayer(newPlayerTable)
@@ -122,14 +110,14 @@ func (p *actorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
 	}
 
 	// 检查并查找该用户下的该角色
-	playerTable, found := db.GetPlayerTable(req.GetValue())
-	if found == false {
+	playerTable := db.PlayerRepository.Get(playerId)
+	if playerTable == nil {
 		p.ResponseCode(session, code.PlayerIdError)
 		return
 	}
 
 	// 保存进入游戏的玩家对应的agentPath
-	online.BindPlayer(playerId, playerTable.UID, session.AgentPath)
+	online.BindPlayer(playerId, session.AgentPath)
 
 	// 设置网关节点session的PlayerID属性
 	p.Call(session.ActorPath(), "setSession", &pb.StringKeyValue{
@@ -137,8 +125,7 @@ func (p *actorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
 		Value: cstring.ToString(playerId),
 	})
 
-	p.uid = playerTable.UID
-	p.playerId = playerTable.PlayerId
+	p.id = playerTable.ID
 	p.isOnline = true // 设置为在线状态
 
 	// 这里改为客户端主动请求更佳
@@ -164,7 +151,7 @@ func (p *actorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
 
 func buildPBPlayer(playerTable *db.PlayerTable) pb.Player {
 	return pb.Player{
-		PlayerId:   playerTable.PlayerId,
+		PlayerId:   playerTable.ID,
 		PlayerName: playerTable.Name,
 		Level:      playerTable.Level,
 		CreateTime: playerTable.CreateTime,

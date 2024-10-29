@@ -2,24 +2,32 @@ package db
 
 import (
 	cherryError "gameserver/cherry/error"
-	cherryString "gameserver/cherry/extend/string"
+	cherrySnowflake "gameserver/cherry/extend/snowflake"
 	cherryTime "gameserver/cherry/extend/time"
 	cherryLogger "gameserver/cherry/logger"
 	"gameserver/internal/code"
-	"gameserver/internal/guid"
+	"gameserver/internal/persistence"
+	"gameserver/internal/persistence/repository"
 )
 
 // DevAccountTable 开发模式的帐号信息表(platform.TypeDevMode)
 type DevAccountTable struct {
-	AccountId   int64  `gorm:"column:account_id;primary_key;comment:'帐号id'" json:"accountId"`
-	AccountName string `gorm:"column:account_name;comment:'帐号名'" json:"accountName"`
-	Password    string `gorm:"column:password;comment:'密码'" json:"-"`
-	CreateIP    string `gorm:"column:create_ip;comment:'创建ip'" json:"createIP"`
-	CreateTime  int64  `gorm:"column:create_time;comment:'创建时间'" json:"createTime"`
+	ID          int64  `gorm:"column:id;primary_key;comment:帐号id" json:"id"`
+	AccountName string `gorm:"column:account_name;comment:帐号名" json:"accountName"`
+	Password    string `gorm:"column:password;comment:密码" json:"-"`
+	CreateIP    string `gorm:"column:create_ip;comment:创建ip" json:"createIP"`
+	CreateTime  int64  `gorm:"column:create_time;comment:创建时间" json:"createTime"`
 }
 
 func (*DevAccountTable) TableName() string {
 	return "dev_account"
+}
+
+var AccountRepository *repository.SynchRepository[int64, DevAccountTable]
+
+func (p *DevAccountTable) InitRepository() {
+	AccountRepository = repository.NewSynchRepository[int64, DevAccountTable](database.GetGameDB())
+	persistence.RegisterRepository(AccountRepository)
 }
 
 func DevAccountRegister(accountName, password, ip string) int32 {
@@ -29,23 +37,29 @@ func DevAccountRegister(accountName, password, ip string) int32 {
 	}
 
 	devAccountTable := &DevAccountTable{
-		AccountId:   guid.Next(),
+		ID:          cherrySnowflake.NextId(),
 		AccountName: accountName,
 		Password:    password,
 		CreateIP:    ip,
 		CreateTime:  cherryTime.Now().Unix(),
 	}
-
+	add := AccountRepository.Add(devAccountTable)
+	if add == nil {
+		return code.AccountRegisterError
+	}
 	devAccountCache.Put(accountName, devAccountTable)
-	// TODO 保存db
-
 	return code.OK
 }
 
 func DevAccountWithName(accountName string) (*DevAccountTable, error) {
 	val, found := devAccountCache.GetIfPresent(accountName)
 	if found == false {
-		return nil, cherryError.Error("account not found")
+		val = new(DevAccountTable)
+		tx := AccountRepository.Where("account_name", accountName).Find(&val)
+		if tx.RowsAffected == 0 {
+			return nil, cherryError.Error("account not found")
+		}
+		devAccountCache.Put(accountName, val)
 	}
 
 	return val.(*DevAccountTable), nil
@@ -53,20 +67,9 @@ func DevAccountWithName(accountName string) (*DevAccountTable, error) {
 
 // loadDevAccount 节点启动时预加载帐号数据
 func loadDevAccount() {
-	// 演示用，直接手工构建几个帐号
-	for i := 1; i <= 10; i++ {
-		index := cherryString.ToString(i)
-
-		devAccount := &DevAccountTable{
-			AccountId:   guid.Next(),
-			AccountName: "test" + index,
-			Password:    "test" + index,
-			CreateIP:    "127.0.0.1",
-			CreateTime:  cherryTime.Now().ToMillisecond(),
-		}
-
-		devAccountCache.Put(devAccount.AccountName, devAccount)
+	list := AccountRepository.GetAll()
+	for _, account := range list {
+		devAccountCache.Put(account.AccountName, account)
 	}
-
 	cherryLogger.Info("preload DevAccountTable")
 }

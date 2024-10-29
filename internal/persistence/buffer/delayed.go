@@ -56,6 +56,7 @@ func (d *DelayedBuffer[K, T]) Add(entity *T) *T {
 		clog.Debugf("%s#id:%v 添加成功", d.prefix, k)
 	} else {
 		clog.Errorf("%s#id:%v 添加失败", d.prefix, k)
+		return nil
 	}
 	return entity
 }

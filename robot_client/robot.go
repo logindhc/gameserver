@@ -66,7 +66,7 @@ func (p *Robot) GetToken(url string, pid, userName, password string) error {
 	p.Token = rsp.Data.(string)
 	p.TagName = fmt.Sprintf("%s_%s", pid, userName)
 	p.StartTime = cherryTime.Now()
-
+	p.Debugf("get token success. %v", p.Token)
 	return nil
 }
 

@@ -1,8 +1,11 @@
 package cherryConnector
 
 import (
+	"errors"
 	cfacade "gameserver/cherry/facade"
 	clog "gameserver/cherry/logger"
+	"net"
+	"time"
 )
 
 type (
@@ -60,13 +63,27 @@ func (t *TCPConnector) Start() {
 	}
 
 	t.Connector.Start()
-
+	var tempDelay time.Duration
 	for t.Running() {
 		conn, err := listener.Accept()
 		if err != nil {
-			clog.Errorf("Failed to accept TCP connection: %s", err.Error())
-			continue
+			var ne net.Error
+			if errors.As(err, &ne) && ne.Temporary() {
+				if tempDelay == 0 {
+					tempDelay = 5 * time.Millisecond
+				} else {
+					tempDelay *= 2
+				}
+				if max := 1 * time.Second; tempDelay > max {
+					tempDelay = max
+				}
+				clog.Infof("accept error: %v; retrying in %v", err, tempDelay)
+				time.Sleep(tempDelay)
+				continue
+			}
+			return
 		}
+		tempDelay = 0
 
 		t.InChan(conn)
 	}

@@ -11,7 +11,7 @@
     },
     "nats": {
       "master_node_id": "gc-master",
-      "address": "nats://0.0.0.0:4222",
+      "address": "nats://192.168.1.113:4222",
       "reconnect_delay": 1,
       "max_reconnects": 0,
       "request_timeout": 2,
@@ -35,6 +35,9 @@
         "node_id": "gc-center",
         "address": "",
         "__settings__": {
+          "db_id_list" : {
+            "default": "center_db_1"
+          },
           "ref_logger": "center_log"
         },
         "enable": true
@@ -45,9 +48,6 @@
         "node_id": "gc-gate-1",
         "address": ":10010",
         "__settings__": {
-          "db_id_list" : {
-            "game_db_id": "game_db_1"
-          },
           "ref_logger": "gate_log"
         },
         "enable": true
@@ -68,7 +68,8 @@
         "node_id": "10001",
         "__settings__": {
           "db_id_list" : {
-            "game_db_id": "game_db_1"
+            "default": "game_db_1",
+            "log": "game_log_1"
           },
           "ref_logger": "game_log"
         },
@@ -127,11 +128,51 @@
       "reload_time": 3000
     },
     "redis": {
-      "prefix_key": "data_config",
-      "subscribe_key": "data_config_change",
       "address": "192.168.1.113:6379",
       "password": "",
       "db": 7
     }
+  },
+  "db": {
+    "center_db_group": [
+      {
+        "enable": true,
+        "db_id": "center_db_1",
+        "dsn" : "",
+        "db_name": "center",
+        "host": "192.168.1.113",
+        "user_name": "root",
+        "password": "123456",
+        "max_idle_connect": 10,
+        "max_open_connect": 100,
+        "log_mode": true
+      }
+    ],
+    "game_db_group": [
+      {
+        "enable": true,
+        "db_id": "game_db_1",
+        "dsn" : "",
+        "db_name": "game_db_1",
+        "host": "192.168.1.113",
+        "user_name": "root",
+        "password": "123456",
+        "max_idle_connect": 10,
+        "max_open_connect": 100,
+        "log_mode": true
+      },
+      {
+        "enable": true,
+        "db_id": "game_log_1",
+        "dsn" : "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local&timeout=5s&multiStatements=true",
+        "db_name": "game_log_1",
+        "host": "192.168.1.113",
+        "user_name": "root",
+        "password": "123456",
+        "max_idle_connect": 10,
+        "max_open_connect": 100,
+        "log_mode": true
+      }
+    ]
   }
 }

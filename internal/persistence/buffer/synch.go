@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	clog "gameserver/cherry/logger"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,11 @@ func NewSyncBuffer[K string | int64, T any](db *gorm.DB) *SyncBuffer[K, T] {
 
 // Add 方法实现
 func (d *SyncBuffer[K, T]) Add(entity *T) *T {
-	d.db.Create(entity)
+	tx := d.db.Create(entity)
+	if tx.Error != nil {
+		clog.Errorw("添加失败", "error", tx.Error)
+		return nil
+	}
 	return entity
 }
 
