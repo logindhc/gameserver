@@ -32,7 +32,10 @@ func (s *ConcurrentSet[T]) Has(item T) bool {
 
 // Clear 清空集合中的所有元素。
 func (s *ConcurrentSet[T]) Clear() {
-	s.set.Clear()
+	s.set.Range(func(k, v any) bool {
+		s.set.Delete(k)
+		return true
+	})
 }
 
 // Size 返回集合中元素的数量。

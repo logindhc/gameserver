@@ -12,7 +12,7 @@ import (
 
 // DevAccountTable 开发模式的帐号信息表(platform.TypeDevMode)
 type DevAccountTable struct {
-	ID          int64  `gorm:"column:id;primary_key;comment:帐号id" json:"id"`
+	ID          int64  `gorm:"column:id;primary_key;autoIncrement:false;comment:帐号id" json:"id"`
 	AccountName string `gorm:"column:account_name;comment:帐号名" json:"accountName"`
 	Password    string `gorm:"column:password;comment:密码" json:"-"`
 	CreateIP    string `gorm:"column:create_ip;comment:创建ip" json:"createIP"`

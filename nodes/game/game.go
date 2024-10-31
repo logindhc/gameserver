@@ -1,17 +1,24 @@
 package game
 
 import (
+	"bufio"
+	"fmt"
 	"gameserver/cherry"
 	cherryCron "gameserver/cherry/components/cron"
 	cherryGops "gameserver/cherry/components/gops"
 	cherrySnowflake "gameserver/cherry/extend/snowflake"
 	cstring "gameserver/cherry/extend/string"
 	cherryUtils "gameserver/cherry/extend/utils"
+	clog "gameserver/cherry/logger"
+	"gameserver/hotfix"
+	"gameserver/hotfix/symbols"
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/component/redis"
 	"gameserver/internal/data"
 	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/module/player"
+	"os"
+	"strings"
 )
 
 func Run(profileFilePath, nodeId string) {
@@ -43,5 +50,34 @@ func Run(profileFilePath, nodeId string) {
 		&player.ActorPlayers{},
 	)
 
+	go scanner()
+
 	app.Startup()
+
+}
+
+func scanner() {
+	// 从标准输入流中接收输入数据
+	input := bufio.NewScanner(os.Stdin)
+	for input.Scan() {
+		line := input.Text()
+		split := strings.Split(line, " ")
+		if split[0] == "hotfix" {
+			if len(split) < 3 {
+				fmt.Println("hotfix 脚本路径 函数名")
+				fmt.Println("例如: hotfix gameserver.go.patch gameserver.GetPatch()")
+				continue
+			}
+			filePath := split[1] // 补丁脚本的路径
+			evalText := split[2] // 补丁脚本内执行的函数名
+			clog.Info("hotfix file:", filePath, "eval:", evalText)
+			// 加载补丁函数foo.GetPatch()
+			_, err := hotfix.ApplyFunc(filePath, evalText, symbols.Symbols)
+			if err != nil {
+				clog.Error(err)
+				continue
+			}
+			clog.Info("hotfix success")
+		}
+	}
 }

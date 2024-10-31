@@ -30,7 +30,7 @@ func (c *Component) Init() {
 }
 
 func (c *Component) OnAfterInit() {
-	c.AutoMigrate(defaultModels, nil)
+	c.AutoMigrate(defaultModels, nil, false)
 	persistence.Start(defaultModels)
 
 	addOnload(loadDevAccount)

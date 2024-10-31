@@ -94,6 +94,12 @@ func scanner(cli *Robot) {
 				continue
 			}
 			continue
+		} else if split[0] == "item" {
+			err := cli.GetItemInfo()
+			if err != nil {
+				continue
+			}
+			continue
 		}
 	}
 }

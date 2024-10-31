@@ -1,7 +1,7 @@
 package db
 
 import (
-	ctime "gameserver/cherry/extend/time"
+	cherryTime "gameserver/cherry/extend/time"
 	clog "gameserver/cherry/logger"
 	cproto "gameserver/cherry/net/proto"
 	"gameserver/internal/code"
@@ -13,7 +13,7 @@ import (
 
 // PlayerTable 角色基础表
 type PlayerTable struct {
-	ID         int64  `gorm:"primaryKey;column:id;comment:id" json:"id"`
+	ID         int64  `gorm:"primaryKey;autoIncrement:false;column:id;comment:id" json:"id"`
 	PID        int32  `gorm:"column:pid;comment:平台id" json:"pid"`
 	OpenId     string `gorm:"column:open_id;comment:平台open_id" json:"openId"`
 	ServerId   int32  `gorm:"column:server_id;comment:创角时的游戏服id" json:"serverId"`
@@ -56,7 +56,7 @@ func CreatePlayer(session *cproto.Session, name string, serverId int32, playerIn
 		Gender:     playerInit.Gender,
 		Level:      playerInit.Level,
 		Exp:        0,
-		CreateTime: ctime.Now().ToMillisecond(),
+		CreateTime: cherryTime.Now().ToMillisecond(),
 	}
 
 	add := PlayerRepository.Add(playerTable)

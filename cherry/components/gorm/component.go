@@ -2,6 +2,9 @@ package cherryGORM
 
 import (
 	"fmt"
+	cherryTime "gameserver/cherry/extend/time"
+	"reflect"
+	"strings"
 	"time"
 
 	cfacade "gameserver/cherry/facade"
@@ -199,7 +202,7 @@ func (c *Component) GetLogDB() *gorm.DB {
 	return nil
 }
 
-func (s *Component) AutoMigrate(models []interface{}, logModels []interface{}) {
+func (s *Component) AutoMigrate(models []interface{}, logModels []interface{}, isJob bool) {
 	dbIdList := s.App().Settings().Get("db_id_list")
 	if models != nil {
 		for _, model := range models {
@@ -222,7 +225,32 @@ func (s *Component) AutoMigrate(models []interface{}, logModels []interface{}) {
 				if key == LOG {
 					db := s.GetDb(dbIdList.Get(key).ToString())
 					if db != nil {
-						err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci").AutoMigrate(model)
+						if isJob {
+							modelVal := reflect.ValueOf(model)
+							initMethod := modelVal.MethodByName("TableName")
+							if initMethod.IsValid() && initMethod.Type().NumIn() == 0 { // 确保InitRepository方法存在且无}
+								call := initMethod.Call(nil)
+								tName := call[0].String()
+								now := cherryTime.Now()
+								nowMonth := now.ToShortMonthFormat()
+								if strings.HasSuffix(tName, nowMonth) {
+									now.AddDays(2) //提前两天建表
+									nextMonth := now.ToShortMonthFormat()
+									if nowMonth == nextMonth {
+										continue
+									}
+									nextTName := strings.ReplaceAll(tName, nowMonth, nextMonth)
+									clog.Infof("[tableName = %s] create next month table: %s", tName, nextTName)
+									err := db.Table(nextTName).Set("gorm:table_options",
+										"ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci").AutoMigrate(model)
+									if err != nil {
+										clog.Error(err)
+									}
+								}
+							}
+						}
+						err := db.Set("gorm:table_options",
+							"ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci").AutoMigrate(model)
 						if err != nil {
 							clog.Panic(err)
 						}

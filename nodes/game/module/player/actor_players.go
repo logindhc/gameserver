@@ -26,7 +26,6 @@ func (p *ActorPlayers) AliasID() string {
 
 func (p *ActorPlayers) OnInit() {
 	p.childExitTime = time.Minute * 30
-
 	// 注册角色登陆事件
 	p.Event().Register(event.PlayerLoginKey, p.onLoginEvent)
 	p.Event().Register(event.PlayerLogoutKey, p.onLogoutEvent)
@@ -36,8 +35,8 @@ func (p *ActorPlayers) OnInit() {
 func (p *ActorPlayers) OnFindChild(msg *cfacade.Message) (cfacade.IActor, bool) {
 	// 动态创建 player child actor
 	childID := msg.TargetPath().ChildID
-	childActor, err := p.Child().Create(childID, &actorPlayer{
-		isOnline: false,
+	childActor, err := p.Child().Create(childID, &ActorPlayer{
+		IsOnline: false,
 	})
 
 	if err != nil {

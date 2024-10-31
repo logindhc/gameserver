@@ -12,7 +12,6 @@ var (
 	rdb *Component
 )
 
-// Component 启动时,检查center节点是否存活
 type (
 	Component struct {
 		redisConfig

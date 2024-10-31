@@ -215,7 +215,7 @@ func (c *CherryTime) SubWeeks(weeks int) {
 	c.SubDays(weeks * DaysPerWeek)
 }
 
-// SubWeek 1天后
+// SubWeek 1周后
 func (c *CherryTime) SubWeek() {
 	c.SubWeeks(1)
 }

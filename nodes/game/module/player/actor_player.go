@@ -15,40 +15,43 @@ import (
 )
 
 type (
-	// actorPlayer 每位登录的玩家对应一个子actor
-	actorPlayer struct {
+	// ActorPlayer 每位登录的玩家对应一个子actor
+	ActorPlayer struct {
 		pomelo.ActorBase
-		isOnline bool // 玩家是否在线
-		id       int64
+		IsOnline bool // 玩家是否在线
+		Id       int64
+		Item
 	}
 )
 
-func (p *actorPlayer) OnInit() {
-	clog.Debugf("[actorPlayer] path = %s init!", p.PathString())
-
+func (p *ActorPlayer) OnInit() {
+	clog.Debugf("[ActorPlayer] path = %s init!", p.PathString())
+	p.Item = Item{p}
+	p.Item.OnInit()
 	// 注册 session关闭的remote函数(网关触发连接断开后，会调用RPC发送该消息)
 	p.Remote().Register("sessionClose", p.sessionClose)
 
 	p.Local().Register("select", p.playerSelect) // 注册 查看角色
 	p.Local().Register("create", p.playerCreate) // 注册 创建角色
-	p.Local().Register("enter", p.playerEnter)   // 注册 进入角色
+	p.Local().Register("enter", p.PlayerEnter)   // 注册 进入角色
+
 }
 
-func (p *actorPlayer) OnStop() {
-	clog.Debugf("[actorPlayer] path = %s exit!", p.PathString())
+func (p *ActorPlayer) OnStop() {
+	clog.Debugf("[ActorPlayer] path = %s exit!", p.PathString())
 }
 
 // sessionClose 接收角色session关闭处理
-func (p *actorPlayer) sessionClose() {
-	online.UnBindPlayer(p.id)
-	p.isOnline = false
+func (p *ActorPlayer) sessionClose() {
+	online.UnBindPlayer(p.Id)
+	p.IsOnline = false
 	p.Exit()
 
-	clog.Debugf("[actorPlayer] exit! id = %d", p.id)
+	clog.Debugf("[ActorPlayer] exit! id = %d", p.Id)
 }
 
 // playerSelect 玩家查询角色列表
-func (p *actorPlayer) playerSelect(session *cproto.Session, _ *pb.None) {
+func (p *ActorPlayer) playerSelect(session *cproto.Session, _ *pb.None) {
 	response := &pb.PlayerSelectResponse{}
 	// 游戏设定单服单角色，协议设计成可返回多角色
 	playerTable := db.PlayerRepository.Get(session.Uid)
@@ -60,7 +63,7 @@ func (p *actorPlayer) playerSelect(session *cproto.Session, _ *pb.None) {
 }
 
 // playerCreate 玩家创角
-func (p *actorPlayer) playerCreate(session *cproto.Session, req *pb.PlayerCreateRequest) {
+func (p *ActorPlayer) playerCreate(session *cproto.Session, req *pb.PlayerCreateRequest) {
 	if req.Gender > 1 {
 		p.ResponseCode(session, code.PlayerCreateFail)
 		return
@@ -101,8 +104,8 @@ func (p *actorPlayer) playerCreate(session *cproto.Session, req *pb.PlayerCreate
 	p.Response(session, response)
 }
 
-// playerEnter 玩家进入游戏
-func (p *actorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
+// PlayerEnter 玩家进入游戏
+func (p *ActorPlayer) PlayerEnter(session *cproto.Session, req *pb.Int64) {
 	playerId := req.Value
 	if playerId < 1 {
 		p.ResponseCode(session, code.PlayerIdError)
@@ -125,8 +128,8 @@ func (p *actorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
 		Value: cstring.ToString(playerId),
 	})
 
-	p.id = playerTable.ID
-	p.isOnline = true // 设置为在线状态
+	p.Id = playerTable.ID
+	p.IsOnline = true // 设置为在线状态
 
 	// 这里改为客户端主动请求更佳
 	// [01]推送角色 道具数据

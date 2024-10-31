@@ -186,6 +186,34 @@ func (p *Robot) ActorEnter() error {
 	return nil
 }
 
+// ActorEnter 角色获取道具信息
+func (p *Robot) GetItemInfo() error {
+	route := "game.player.getItemInfo"
+	req := &pb.None{}
+
+	msg, err := p.Request(route, req)
+	if err != nil {
+		return err
+	}
+
+	rsp := &pb.PlayerSelectResponse{}
+	err = p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		return err
+	}
+
+	if len(rsp.List) < 1 {
+		p.Debugf("[%s] not found getItemInfo.", p.TagName)
+		return nil
+	}
+
+	p.PlayerId = rsp.List[0].PlayerId
+	p.PlayerName = rsp.List[0].PlayerName
+
+	p.Debugf("[%s] [getItemInfo] response PlayerID = %d,PlayerName = %s", p.TagName, p.PlayerId, p.PlayerName)
+	return nil
+}
+
 func (p *Robot) RandSleep() {
 	time.Sleep(time.Duration(rand.Int31n(10)) * time.Millisecond)
 }

@@ -81,10 +81,17 @@ func (c CherryTime) ToShortMonthFormat() string {
 	return fmt.Sprintf("%04d%02d", c.Time.Year(), c.Time.Month())
 }
 
-// ToShortIntMonthFormat 200601
-func (c CherryTime) ToShortIntMonthFormat() int32 {
+// ToShortInt32MonthFormat 200601
+func (c CherryTime) ToShortInt32MonthFormat() int32 {
 	strDate := c.ToShortMonthFormat()
 	intDate, _ := cstring.ToInt32(strDate)
+	return intDate
+}
+
+// ToShortIntMonthFormat 200601
+func (c CherryTime) ToShortIntMonthFormat() int {
+	strDate := c.ToShortMonthFormat()
+	intDate, _ := cstring.ToInt(strDate)
 	return intDate
 }
 
