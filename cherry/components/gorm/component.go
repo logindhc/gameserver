@@ -228,7 +228,7 @@ func (s *Component) AutoMigrate(models []interface{}, logModels []interface{}, i
 						if isJob {
 							modelVal := reflect.ValueOf(model)
 							initMethod := modelVal.MethodByName("TableName")
-							if initMethod.IsValid() && initMethod.Type().NumIn() == 0 { // 确保InitRepository方法存在且无}
+							if initMethod.IsValid() && initMethod.Type().NumIn() == 0 {
 								call := initMethod.Call(nil)
 								tName := call[0].String()
 								now := cherryTime.Now()

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"fmt"
 	pomeloClient "gameserver/cherry/net/parser/pomelo/client"
 	"os"
 	"os/signal"
@@ -32,13 +33,12 @@ func main() {
 
 	cli.PrintLog = true
 	err := cli.ConnectToWS("0.0.0.0:10010", "")
+	defer cli.Disconnect()
 	if err != nil {
 		return
 	}
 
 	go scanner(cli)
-
-	defer cli.Disconnect()
 
 	// 等待上下文被取消
 	<-ctx.Done()
@@ -50,6 +50,10 @@ func scanner(cli *Robot) {
 	for input.Scan() {
 		line := input.Text()
 		split := strings.Split(line, " ")
+		if split[0] == "help" {
+			fmt.Println("register|token login select|create enter item")
+			continue
+		}
 		if split[0] == "register" {
 			username = split[1]
 			pwd = split[2]
