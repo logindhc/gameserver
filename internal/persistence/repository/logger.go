@@ -45,7 +45,7 @@ func (r *LoggerRepository[K, T]) GetOrCreate(id K) *T {
 }
 func (r *LoggerRepository[K, T]) Remove(id K) {
 }
-func (r *LoggerRepository[K, T]) Update(entity *T) {
+func (r *LoggerRepository[K, T]) Update(entity *T, immediately ...bool) {
 }
 func (r *LoggerRepository[K, T]) Where(query interface{}, args ...interface{}) (tx *gorm.DB) {
 	return nil

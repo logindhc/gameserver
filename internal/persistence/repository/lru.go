@@ -4,7 +4,6 @@ import (
 	clog "gameserver/cherry/logger"
 	"gameserver/internal/persistence/buffer"
 	"gameserver/internal/persistence/cache"
-
 	"gorm.io/gorm"
 	"reflect"
 	"sync"
@@ -96,10 +95,14 @@ func (r *LruRepository[K, T]) Remove(id K) {
 	r.buffer.Remove(id)
 }
 
-func (r *LruRepository[K, T]) Update(entity *T) {
+func (r *LruRepository[K, T]) Update(entity *T, immediately ...bool) {
 	id := r.getId(entity)
 	r.cache.Put(id, entity)
-	r.buffer.Update(entity)
+	if len(immediately) > 0 && immediately[0] {
+		r.db.Updates(entity)
+	} else {
+		r.buffer.Update(entity)
+	}
 }
 
 func (r *LruRepository[K, T]) Flush() {

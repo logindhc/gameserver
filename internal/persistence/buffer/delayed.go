@@ -68,9 +68,10 @@ func (d *DelayedBuffer[K, T]) Update(entity *T) {
 		clog.Errorf("%s#id:%v 更新时已经被删除", d.prefix, id)
 		return
 	}
-	d.updates.Add(id.(K))
+	pendings := d.updates
+	pendings.Add(id.(K))
 	//fmt.Printf("updates %p %+d \n", d.updates, d.updates.Size())
-	if d.updates.Size() >= d.bufferSize {
+	if pendings.Size() >= d.bufferSize {
 		d.Flush()
 	}
 }
@@ -97,6 +98,10 @@ func (d *DelayedBuffer[K, T]) RemoveAll() {
 
 // Flush 方法实现
 func (d *DelayedBuffer[K, T]) Flush() {
+	d.flush()
+}
+
+func (d *DelayedBuffer[K, T]) flush() {
 	// 处理更新
 	size := d.updates.Size()
 	if size <= 0 {
