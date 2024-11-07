@@ -13,15 +13,17 @@ import (
 
 // PlayerTable 角色基础表
 type PlayerTable struct {
-	ID         int64  `gorm:"primaryKey;autoIncrement:false;column:id;comment:id" json:"id"`
-	PID        int32  `gorm:"column:pid;comment:平台id" json:"pid"`
-	OpenId     string `gorm:"column:open_id;comment:平台open_id" json:"openId"`
-	ServerId   int32  `gorm:"column:server_id;comment:创角时的游戏服id" json:"serverId"`
-	Name       string `gorm:"column:player_name;comment:角色名称" json:"name"`
-	Gender     int32  `gorm:"column:gender;comment:角色性别" json:"gender"`
-	Level      int32  `gorm:"column:level;comment:角色等级" json:"level"`
-	Exp        int64  `gorm:"column:exp;comment:角色经验" json:"exp"`
-	CreateTime int64  `gorm:"column:create_time;comment:创建时间" json:"createTime"`
+	ID             int64  `gorm:"primaryKey;autoIncrement:false;column:id;comment:id" json:"id"`
+	PID            int32  `gorm:"column:pid;comment:平台id" json:"pid"`
+	OpenId         string `gorm:"column:open_id;comment:平台open_id" json:"openId"`
+	ServerId       int32  `gorm:"column:server_id;comment:创角时的游戏服id" json:"serverId"`
+	Name           string `gorm:"column:player_name;comment:角色名称" json:"name"`
+	Gender         int32  `gorm:"column:gender;comment:角色性别" json:"gender"`
+	Level          int32  `gorm:"column:level;comment:角色等级" json:"level"`
+	Exp            int64  `gorm:"column:exp;comment:角色经验" json:"exp"`
+	CreateTime     int64  `gorm:"column:create_time;comment:创建时间" json:"createTime"`
+	LastLoginTime  int64  `gorm:"column:last_login_time;comment:最后登录时间" json:"lastLoginTime"`
+	LastLogoutTime int64  `gorm:"column:last_logout_time;comment:最后登出时间" json:"LastLogoutTime"`
 }
 
 func (*PlayerTable) TableName() string {

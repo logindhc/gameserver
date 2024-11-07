@@ -63,7 +63,7 @@ func (r *SynchRepository[K, T]) Remove(id K) {
 	r.buffer.Remove(id)
 }
 
-func (r *SynchRepository[K, T]) Update(entity *T, immediately ...bool) {
+func (r *SynchRepository[K, T]) Update(entity *T) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 	r.buffer.Update(entity)

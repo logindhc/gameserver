@@ -23,10 +23,10 @@ func (*DevAccountTable) TableName() string {
 	return "dev_account"
 }
 
-var AccountRepository *repository.SynchRepository[int64, DevAccountTable]
+var AccountRepository *repository.LruRepository[int64, DevAccountTable]
 
 func (p *DevAccountTable) InitRepository() {
-	AccountRepository = repository.NewSynchRepository[int64, DevAccountTable](database.GetGameDB())
+	AccountRepository = repository.NewLruRepository[int64, DevAccountTable](database.GetGameDB(), p.TableName())
 	persistence.RegisterRepository(AccountRepository)
 }
 

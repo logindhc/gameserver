@@ -45,8 +45,10 @@ func (p *ActorPlayer) OnStop() {
 func (p *ActorPlayer) sessionClose() {
 	online.UnBindPlayer(p.Id)
 	p.IsOnline = false
-	p.Exit()
 
+	logoutEvent := event.NewPlayerLogout(p.ActorID(), p.Id)
+	p.PostEvent(&logoutEvent)
+	p.Exit()
 	clog.Debugf("[ActorPlayer] exit! id = %d", p.Id)
 }
 

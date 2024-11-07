@@ -46,7 +46,7 @@ func (d *LoggerBuffer[K, T]) flushLoop() {
 	for {
 		select {
 		case <-ticker.C:
-			d.Flush()
+			d.flush()
 		}
 
 	}
@@ -58,20 +58,16 @@ func (d *LoggerBuffer[K, T]) Add(entity *T) *T {
 	d.queue.Enqueue(*entity)
 	d.locker.Unlock()
 	if d.queue.Size() >= d.batchSize {
-		d.Flush()
+		d.flush()
 	}
+	//go d.add(entity)
 	return entity
 }
 
-// Update 方法实现
 func (d *LoggerBuffer[K, T]) Update(entity *T) {
 }
-
-// Remove 方法实现
 func (d *LoggerBuffer[K, T]) Remove(id K) {
 }
-
-// RemoveAll 方法实现
 func (d *LoggerBuffer[K, T]) RemoveAll() {
 }
 
@@ -103,67 +99,85 @@ func (d *LoggerBuffer[K, T]) flush() {
 	size := d.queue.Size()
 	clog.Debugf("%s# batch add num %d \n", d.prefix, size)
 	d.locker.Lock()
-	var entities []T
+	var entities []*T
 	for i := 0; i < size; i++ {
 		entity, ok := d.queue.Dequeue()
 		if !ok {
 			break
 		}
-		entities = append(entities, entity)
+		entities = append(entities, &entity)
 	}
 	d.locker.Unlock()
 	var sqlBuilder strings.Builder
 	for _, entity := range entities {
-		//先反射获取对应标记生成的sql
-		entityType := reflect.TypeOf(entity)
-		entityValue := reflect.ValueOf(entity)
-		temp := make([]SqlFieldStruct, entityType.NumField())
-		for i := 0; i < entityType.NumField(); i++ {
-			temp[i] = processField(entityType, entityValue, i)
-		}
-		var left, values, updates strings.Builder
-		monthShardingVal := 0
-		for i := 0; i < len(temp); i++ {
-			field := temp[i]
-			if field.isNull {
-				continue
-			}
-			if field.isMonthShared {
-				monthShardingVal = field.fieldVal.(int)
-			}
-			left.WriteString(fmt.Sprintf("`%s`,", field.sqlName))
-			fv := fmt.Sprintf("%v", field.fieldVal)
-			if field.typeIsStr {
-				fv = fmt.Sprintf("`%v`", field.fieldVal)
-			}
-			values.WriteString(fmt.Sprintf("%s,", fv))
-			if field.onupdate == Repeat {
-				updates.WriteString(fmt.Sprintf("`%s`=%s,", field.sqlName, fv))
-			} else if field.onupdate == Total {
-				updates.WriteString(fmt.Sprintf("`%s`=`%s`+%s,", field.sqlName, field.sqlName, fv))
-			} else {
-				updates.WriteString(fmt.Sprintf("`%v`=`%v`,", field.sqlName, field.sqlName))
-			}
-		}
-		tbName := d.prefix
-		if d.monthSharding {
-			tbName = utils.GetMonthTbName(tbName, monthShardingVal)
-		}
-		leftStr := strings.TrimRight(left.String(), ",")
-		valuesStr := strings.TrimRight(values.String(), ",")
-		updateStr := strings.TrimRight(updates.String(), ",")
-		sqlBuilder.WriteString(fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s;", tbName, leftStr, valuesStr, updateStr))
-
+		sql := d.generateSql(entity)
+		sqlBuilder.WriteString(sql)
 	}
-	tx := d.db.Exec(sqlBuilder.String())
+	go func() {
+		tx := d.db.Exec(sqlBuilder.String())
+		if tx.Error != nil {
+			clog.Errorf("%s# batch add error %s", d.prefix, tx.Error.Error())
+			return
+		}
+		clog.Infof("%s# batch add num %d success", d.prefix, size)
+	}()
+}
+func (d *LoggerBuffer[K, T]) add(entity *T) {
+	sql := d.generateSql(entity)
+	tx := d.db.Exec(sql)
 	if tx.Error != nil {
-		clog.Errorf("%s# batch add error %s", d.prefix, tx.Error.Error())
+		clog.Errorf("%s# add error %s", d.prefix, tx.Error.Error())
 		return
 	}
-	clog.Infof("%s# batch add num %d success", d.prefix, size)
+	clog.Infof("%s# add success", d.prefix)
 }
 
-func processField(entityType reflect.Type, entityValue reflect.Value, i int) SqlFieldStruct {
+func (d *LoggerBuffer[K, T]) generateSql(entity *T) string {
+	var sqlBuilder strings.Builder
+	//先反射获取对应标记生成的sql
+	entityType := reflect.TypeOf(*entity)
+	entityValue := reflect.ValueOf(*entity)
+	var temp []*SqlFieldStruct
+	for i := 0; i < entityType.NumField(); i++ {
+		temp = append(temp, d.processField(entityType, entityValue, i))
+	}
+	var left, values, updates strings.Builder
+	monthShardingVal := 0
+	for i := 0; i < len(temp); i++ {
+		field := temp[i]
+		if field.isNull {
+			continue
+		}
+		if field.isMonthShared {
+			monthShardingVal = field.fieldVal.(int)
+		}
+		left.WriteString(fmt.Sprintf("`%s`,", field.sqlName))
+		fv := fmt.Sprintf("%v", field.fieldVal)
+		if field.typeIsStr {
+			fv = fmt.Sprintf("`%v`", field.fieldVal)
+		}
+		values.WriteString(fmt.Sprintf("%s,", fv))
+		if field.onupdate == Repeat {
+			updates.WriteString(fmt.Sprintf("`%s`=%s,", field.sqlName, fv))
+		} else if field.onupdate == Total {
+			updates.WriteString(fmt.Sprintf("`%s`=`%s`+%s,", field.sqlName, field.sqlName, fv))
+		} else {
+			updates.WriteString(fmt.Sprintf("`%v`=`%v`,", field.sqlName, field.sqlName))
+		}
+	}
+	tbName := d.prefix
+	if d.monthSharding {
+		tbName = utils.GetMonthTbName(tbName, monthShardingVal)
+	}
+	leftStr := strings.TrimRight(left.String(), ",")
+	valuesStr := strings.TrimRight(values.String(), ",")
+	updateStr := strings.TrimRight(updates.String(), ",")
+	sqlBuilder.WriteString(fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s;", tbName, leftStr, valuesStr, updateStr))
+	sql := sqlBuilder.String()
+	return sql
+}
+
+func (d *LoggerBuffer[K, T]) processField(entityType reflect.Type, entityValue reflect.Value, i int) *SqlFieldStruct {
 	field := entityType.Field(i)
 	fieldValue := entityValue.Field(i)
 	isPrimary := false
@@ -196,7 +210,7 @@ func processField(entityType reflect.Type, entityValue reflect.Value, i int) Sql
 	if field.Type.Kind() == reflect.String {
 		typeIsStr = true
 	}
-	sqlField := SqlFieldStruct{
+	sqlField := &SqlFieldStruct{
 		fieldName:     field.Name,
 		sqlName:       cstring.CamelToSnake(field.Name),
 		typeIsStr:     typeIsStr,

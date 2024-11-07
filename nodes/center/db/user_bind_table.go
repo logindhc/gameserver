@@ -22,10 +22,10 @@ func (*UserBindTable) TableName() string {
 	return "user_bind"
 }
 
-var UserBindRepository *repository.SynchRepository[string, UserBindTable]
+var UserBindRepository *repository.LruRepository[string, UserBindTable]
 
 func (p *UserBindTable) InitRepository() {
-	UserBindRepository = repository.NewSynchRepository[string, UserBindTable](database.GetGameDB())
+	UserBindRepository = repository.NewLruRepository[string, UserBindTable](database.GetGameDB(), p.TableName())
 	persistence.RegisterRepository(UserBindRepository)
 }
 

@@ -27,7 +27,7 @@ func (d *SyncBuffer[K, T]) Add(entity *T) *T {
 
 // Update 方法实现
 func (d *SyncBuffer[K, T]) Update(entity *T) {
-	d.db.Updates(entity)
+	d.db.Save(entity)
 }
 
 // Remove 方法实现

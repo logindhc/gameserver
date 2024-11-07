@@ -6,6 +6,7 @@ import (
 	"gameserver/internal/persistence/cache"
 	"gorm.io/gorm"
 	"math/rand"
+	"sync/atomic"
 	"time"
 )
 
@@ -13,21 +14,22 @@ type DelayedBuffer[K string | int64, T any] struct {
 	cache      *cache.LRUCache[K, T]
 	db         *gorm.DB
 	prefix     string
-	updates    *concurrent.ConcurrentSet[K]
+	updates    *atomic.Value
 	deletes    *concurrent.ConcurrentSet[K]
 	bufferSize int
 }
 
 func NewDelayedBuffer[K string | int64, T any](db *gorm.DB, cache *cache.LRUCache[K, T], prefix string) *DelayedBuffer[K, T] {
-	bufferSize := 100
+	bufferSize := 5000
 	buffer := &DelayedBuffer[K, T]{
 		cache:      cache,
 		db:         db,
 		prefix:     prefix,
-		updates:    concurrent.NewConcurrentSet[K](),
+		updates:    &atomic.Value{},
 		deletes:    concurrent.NewConcurrentSet[K](),
 		bufferSize: bufferSize,
 	}
+	buffer.updates.Store(concurrent.NewConcurrentSet[K]())
 	go buffer.flushLoop() // 启动后台任务处理更新与删除
 	return buffer
 }
@@ -41,9 +43,8 @@ func (d *DelayedBuffer[K, T]) flushLoop() {
 	for {
 		select {
 		case <-ticker.C:
-			d.Flush()
+			d.flush()
 		}
-
 	}
 }
 
@@ -51,13 +52,14 @@ func (d *DelayedBuffer[K, T]) flushLoop() {
 func (d *DelayedBuffer[K, T]) Add(entity *T) *T {
 	k := getKey(entity)
 	d.deletes.Remove(k.(K))
-	tx := d.db.Create(entity)
-	if tx.Error == nil {
-		clog.Debugf("%s#id:%v 添加成功", d.prefix, k)
-	} else {
-		clog.Errorf("%s#id:%v 添加失败", d.prefix, k)
-		return nil
-	}
+	go func() {
+		tx := d.db.Create(entity)
+		if tx.Error == nil {
+			clog.Debugf("%s#id:%v 添加成功", d.prefix, k)
+		} else {
+			clog.Errorf("%s#id:%v 添加失败 %v", d.prefix, k, entity)
+		}
+	}()
 	return entity
 }
 
@@ -68,18 +70,19 @@ func (d *DelayedBuffer[K, T]) Update(entity *T) {
 		clog.Errorf("%s#id:%v 更新时已经被删除", d.prefix, id)
 		return
 	}
-	pendings := d.updates
-	pendings.Add(id.(K))
-	//fmt.Printf("updates %p %+d \n", d.updates, d.updates.Size())
-	if pendings.Size() >= d.bufferSize {
-		d.Flush()
+	pending := d.updates.Load().(*concurrent.ConcurrentSet[K])
+	pending.Add(id.(K))
+	size := pending.Size()
+	clog.Debugf("updates %p %v \n", pending, size)
+	if size >= d.bufferSize {
+		d.flush()
 	}
 }
 
 // Remove 方法实现
 func (d *DelayedBuffer[K, T]) Remove(id K) {
 	d.deletes.Add(id)
-	d.updates.Remove(id)
+	d.updates.Load().(*concurrent.ConcurrentSet[K]).Remove(id)
 	var entity T
 	d.db.Model(entity).Where("id = ?", id).Delete(nil)
 	d.deletes.Remove(id)
@@ -91,7 +94,7 @@ func (d *DelayedBuffer[K, T]) RemoveAll() {
 	// 清空缓存并触发刷新
 	d.cache.Clear()
 	d.deletes.Clear()
-	d.updates.Clear()
+	d.updates.Load().(*concurrent.ConcurrentSet[K]).Clear()
 	var entity = new(*T)
 	d.db.Delete(entity)
 }
@@ -103,23 +106,30 @@ func (d *DelayedBuffer[K, T]) Flush() {
 
 func (d *DelayedBuffer[K, T]) flush() {
 	// 处理更新
-	size := d.updates.Size()
+	flushes := d.updates.Swap(concurrent.NewConcurrentSet[K]())
+	f := flushes.(*concurrent.ConcurrentSet[K])
+	size := f.Size()
 	if size <= 0 {
 		return
 	}
-	clog.Debugf("%s# update num %d", d.prefix, size)
-	all := d.updates.All()
+	clog.Debugf("%s# [%p] delayerd flush num %d", d.prefix, flushes, size)
+	all := f.All()
+	count := 0
+	start := time.Now()
+	var entities []*T
 	for _, id := range all {
 		entity := d.cache.Get(id)
 		if entity == nil {
 			clog.Errorf("%s#id:%v 更新失败，缓存中不存在", d.prefix, id)
 			continue
 		}
-		tx := d.db.Updates(entity)
-		if tx.Error != nil {
-			clog.Errorf("%s#id:%v 更新失败", d.prefix, id)
-			continue
-		}
-		d.updates.Remove(id)
+		count++
+		entities = append(entities, entity)
+		f.Remove(id)
 	}
+	tx := d.db.Save(entities)
+	if tx.Error != nil {
+		clog.Errorf("%s# 批量更新失败 %v", d.prefix, tx.Error)
+	}
+	clog.Debugf("%s# [%p] delayerd sync flush num %d success, cos %v", d.prefix, flushes, count, time.Since(start))
 }

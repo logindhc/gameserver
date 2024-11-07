@@ -86,7 +86,8 @@ func (r *LruRepository[K, T]) Add(entity *T) *T {
 	if prev != nil {
 		return prev
 	}
-
+	//先缓存再异步入库
+	r.cache.Put(id, entity)
 	return r.buffer.Add(entity)
 }
 
@@ -95,14 +96,10 @@ func (r *LruRepository[K, T]) Remove(id K) {
 	r.buffer.Remove(id)
 }
 
-func (r *LruRepository[K, T]) Update(entity *T, immediately ...bool) {
+func (r *LruRepository[K, T]) Update(entity *T) {
 	id := r.getId(entity)
 	r.cache.Put(id, entity)
-	if len(immediately) > 0 && immediately[0] {
-		r.db.Updates(entity)
-	} else {
-		r.buffer.Update(entity)
-	}
+	r.buffer.Update(entity)
 }
 
 func (r *LruRepository[K, T]) Flush() {

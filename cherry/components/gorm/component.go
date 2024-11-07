@@ -116,7 +116,9 @@ func (s *Component) Init() {
 
 func (s *Component) createORM(cfg *mySqlConfig) (*gorm.DB, error) {
 	db, err := gorm.Open(mysql.Open(cfg.GetDSN()), &gorm.Config{
-		Logger: getLogger(),
+		Logger:                 getLogger(),
+		SkipDefaultTransaction: true,
+		//PrepareStmt:            true, // 开启预编译语句缓存就不能批量日志操作:multiStatements=true
 	})
 
 	if err != nil {

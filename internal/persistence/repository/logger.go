@@ -3,7 +3,6 @@ package repository
 import (
 	"gameserver/internal/persistence/buffer"
 	"gorm.io/gorm"
-	"reflect"
 )
 
 type LoggerRepository[K string | int64, T any] struct {
@@ -45,35 +44,8 @@ func (r *LoggerRepository[K, T]) GetOrCreate(id K) *T {
 }
 func (r *LoggerRepository[K, T]) Remove(id K) {
 }
-func (r *LoggerRepository[K, T]) Update(entity *T, immediately ...bool) {
+func (r *LoggerRepository[K, T]) Update(entity *T) {
 }
 func (r *LoggerRepository[K, T]) Where(query interface{}, args ...interface{}) (tx *gorm.DB) {
 	return nil
-}
-func (r *LoggerRepository[K, T]) getId(entity *T) K {
-	val := reflect.ValueOf(entity)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	idField := val.FieldByName("ID")
-	if !idField.IsValid() {
-		panic("ID field not found")
-	}
-	id, ok := idField.Interface().(K)
-	if !ok {
-		panic("ID Interface not found")
-	}
-	return id
-}
-
-func (r *LoggerRepository[K, T]) setId(entity *T, id K) {
-	val := reflect.ValueOf(entity)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	idField := val.FieldByName("ID")
-	if !idField.IsValid() {
-		panic("ID field not found")
-	}
-	idField.Set(reflect.ValueOf(id))
 }

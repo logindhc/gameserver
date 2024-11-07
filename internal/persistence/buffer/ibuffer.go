@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	clog "gameserver/cherry/logger"
 	"reflect"
 )
 
@@ -22,11 +23,11 @@ func getKey[T any](entity *T) any {
 	}
 	idField := val.FieldByName("ID")
 	if !idField.IsValid() {
-		panic("ID field not found")
+		clog.Panic("ID field not found")
 	}
 	id, ok := idField.Interface().(any)
 	if !ok {
-		panic("ID is not an integer")
+		clog.Panic("ID is not an integer")
 	}
 	return id
 }

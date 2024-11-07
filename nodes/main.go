@@ -10,6 +10,7 @@ import (
 	"gameserver/nodes/web"
 	"github.com/urfave/cli/v2"
 	"os"
+	"runtime"
 )
 
 func main() {
@@ -37,6 +38,12 @@ func versionCommand() *cli.Command {
 		UsageText: "game cluster node version",
 		Action: func(c *cli.Context) error {
 			fmt.Println(cherryConst.Version())
+			// 查看默认设置
+			fmt.Printf("Default GOMAXPROCS: %d\n", runtime.GOMAXPROCS(0))
+			// 设置GOMAXPROCS
+			runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+			// 再次查看设置后的值
+			fmt.Printf("Updated GOMAXPROCS: %d\n", runtime.GOMAXPROCS(0))
 			return nil
 		},
 	}
