@@ -96,9 +96,13 @@ func (r *LruRepository[K, T]) Remove(id K) {
 	r.buffer.Remove(id)
 }
 
-func (r *LruRepository[K, T]) Update(entity *T) {
+func (r *LruRepository[K, T]) Update(entity *T, immediately ...bool) {
 	id := r.getId(entity)
 	r.cache.Put(id, entity)
+	if len(immediately) > 0 && immediately[0] {
+		r.db.Save(entity)
+		return
+	}
 	r.buffer.Update(entity)
 }
 

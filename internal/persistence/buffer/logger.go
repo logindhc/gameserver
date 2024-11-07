@@ -46,7 +46,7 @@ func (d *LoggerBuffer[K, T]) flushLoop() {
 	for {
 		select {
 		case <-ticker.C:
-			d.flush()
+			d.flush(false)
 		}
 
 	}
@@ -58,7 +58,7 @@ func (d *LoggerBuffer[K, T]) Add(entity *T) *T {
 	d.queue.Enqueue(*entity)
 	d.locker.Unlock()
 	if d.queue.Size() >= d.batchSize {
-		d.flush()
+		d.flush(false)
 	}
 	//go d.add(entity)
 	return entity
@@ -90,9 +90,9 @@ type SqlFieldStruct struct {
 
 // Flush 方法实现
 func (d *LoggerBuffer[K, T]) Flush() {
-	d.flush()
+	d.flush(true)
 }
-func (d *LoggerBuffer[K, T]) flush() {
+func (d *LoggerBuffer[K, T]) flush(immediately bool) {
 	if d.queue.IsEmpty() {
 		return
 	}
@@ -113,14 +113,23 @@ func (d *LoggerBuffer[K, T]) flush() {
 		sql := d.generateSql(entity)
 		sqlBuilder.WriteString(sql)
 	}
-	go func() {
+	if immediately {
 		tx := d.db.Exec(sqlBuilder.String())
 		if tx.Error != nil {
-			clog.Errorf("%s# batch add error %s", d.prefix, tx.Error.Error())
+			clog.Errorf("%s# sync batch add error %s", d.prefix, tx.Error.Error())
 			return
 		}
-		clog.Infof("%s# batch add num %d success", d.prefix, size)
-	}()
+		clog.Infof("%s# batch sync add num %d success", d.prefix, size)
+	} else {
+		go func() {
+			tx := d.db.Exec(sqlBuilder.String())
+			if tx.Error != nil {
+				clog.Errorf("%s# async batch add error %s", d.prefix, tx.Error.Error())
+				return
+			}
+			clog.Infof("%s# async batch add num %d success", d.prefix, size)
+		}()
+	}
 }
 func (d *LoggerBuffer[K, T]) add(entity *T) {
 	sql := d.generateSql(entity)

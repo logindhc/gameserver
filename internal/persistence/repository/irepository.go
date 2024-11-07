@@ -10,7 +10,7 @@ type IRepository[K string | int64, T any] interface {
 	GetOrCreate(id K) *T
 	Add(entity *T) *T
 	Remove(id K)
-	Update(entity *T)
+	Update(entity *T, immediately ...bool)
 	Flush()
 	Where(query interface{}, args ...interface{}) (tx *gorm.DB)
 }
