@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-type Buffer[K string | int64, T any] interface {
+type IBuffer[K string | int64, T any] interface {
 	Add(entity *T) *T
 	Update(entity *T)
 	Remove(id K)

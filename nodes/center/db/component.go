@@ -12,8 +12,7 @@ var (
 	database       *Component
 
 	defaultModels = []interface{}{
-		&DevAccountTable{},
-		&UserBindTable{},
+		&AccountTable{},
 	}
 )
 
@@ -33,7 +32,6 @@ func (c *Component) OnAfterInit() {
 	c.AutoMigrate(defaultModels, nil, false)
 	persistence.Start(defaultModels)
 
-	addOnload(loadDevAccount)
 	for _, fn := range onLoadFuncList {
 		cherryUtils.Try(fn, func(errString string) {
 			cherryLogger.Warnf(errString)

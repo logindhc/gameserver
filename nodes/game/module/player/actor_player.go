@@ -6,7 +6,6 @@ import (
 	"gameserver/cherry/net/parser/pomelo"
 	cproto "gameserver/cherry/net/proto"
 	"gameserver/internal/code"
-	"gameserver/internal/data"
 	"gameserver/internal/event"
 	"gameserver/internal/pb"
 	sessionKey "gameserver/internal/session_key"
@@ -30,10 +29,7 @@ func (p *ActorPlayer) OnInit() {
 	p.Item.OnInit()
 	// 注册 session关闭的remote函数(网关触发连接断开后，会调用RPC发送该消息)
 	p.Remote().Register("sessionClose", p.sessionClose)
-
-	p.Local().Register("select", p.playerSelect) // 注册 查看角色
-	p.Local().Register("create", p.playerCreate) // 注册 创建角色
-	p.Local().Register("enter", p.PlayerEnter)   // 注册 进入角色
+	p.Local().Register("enter", p.playerEnter) // 注册 进入角色
 
 }
 
@@ -52,62 +48,8 @@ func (p *ActorPlayer) sessionClose() {
 	clog.Debugf("[ActorPlayer] exit! id = %d", p.Id)
 }
 
-// playerSelect 玩家查询角色列表
-func (p *ActorPlayer) playerSelect(session *cproto.Session, _ *pb.None) {
-	response := &pb.PlayerSelectResponse{}
-	// 游戏设定单服单角色，协议设计成可返回多角色
-	playerTable := db.PlayerRepository.Get(session.Uid)
-	if playerTable != nil {
-		playerInfo := buildPBPlayer(playerTable)
-		response.List = append(response.List, &playerInfo)
-	}
-	p.Response(session, response)
-}
-
-// playerCreate 玩家创角
-func (p *ActorPlayer) playerCreate(session *cproto.Session, req *pb.PlayerCreateRequest) {
-	if req.Gender > 1 {
-		p.ResponseCode(session, code.PlayerCreateFail)
-		return
-	}
-
-	// 检查玩家昵称
-	if len(req.PlayerName) < 1 {
-		p.ResponseCode(session, code.PlayerCreateFail)
-		return
-	}
-
-	// 获取创角初始化配置
-	playerInitRow, found := data.PlayerInitConfig.Get(req.Gender)
-	if found == false {
-		p.ResponseCode(session, code.PlayerCreateFail)
-		return
-	}
-
-	// 创建角色&添加角色初始的资产
-	serverId := session.GetInt32(sessionKey.ServerID)
-	newPlayerTable, errCode := db.CreatePlayer(session, req.PlayerName, serverId, playerInitRow)
-	if code.IsFail(errCode) {
-		p.ResponseCode(session, errCode)
-		return
-	}
-
-	// TODO 更新最后一次登陆的角色信息到中心节点
-
-	// 抛出角色创建事件
-	playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, req.PlayerName, req.Gender)
-	p.PostEvent(&playerCreateEvent)
-
-	playerInfo := buildPBPlayer(newPlayerTable)
-	response := &pb.PlayerCreateResponse{
-		Player: &playerInfo,
-	}
-
-	p.Response(session, response)
-}
-
 // PlayerEnter 玩家进入游戏
-func (p *ActorPlayer) PlayerEnter(session *cproto.Session, req *pb.Int64) {
+func (p *ActorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
 	playerId := req.Value
 	if playerId < 1 {
 		p.ResponseCode(session, code.PlayerIdError)
@@ -116,6 +58,11 @@ func (p *ActorPlayer) PlayerEnter(session *cproto.Session, req *pb.Int64) {
 
 	// 检查并查找该用户下的该角色
 	playerTable := db.PlayerRepository.Get(playerId)
+	if playerTable == nil {
+		// 创建角色
+		playerTable = p.playerCreate(session)
+	}
+
 	if playerTable == nil {
 		p.ResponseCode(session, code.PlayerIdError)
 		return
@@ -130,7 +77,7 @@ func (p *ActorPlayer) PlayerEnter(session *cproto.Session, req *pb.Int64) {
 		Value: cstring.ToString(playerId),
 	})
 
-	p.Id = playerTable.ID
+	p.Id = playerId
 	p.IsOnline = true // 设置为在线状态
 
 	// 这里改为客户端主动请求更佳
@@ -146,7 +93,7 @@ func (p *ActorPlayer) PlayerEnter(session *cproto.Session, req *pb.Int64) {
 	// [99]最后推送 角色进入游戏响应结果
 	response := &pb.PlayerEnterResponse{}
 	response.GuideMaps = map[int32]int32{}
-
+	response.Player = buildPBPlayer(playerTable)
 	p.Response(session, response)
 
 	// 角色登录事件
@@ -154,10 +101,27 @@ func (p *ActorPlayer) PlayerEnter(session *cproto.Session, req *pb.Int64) {
 	p.PostEvent(&loginEvent)
 }
 
-func buildPBPlayer(playerTable *db.PlayerTable) pb.Player {
-	return pb.Player{
+// playerCreate 玩家创角
+func (p *ActorPlayer) playerCreate(session *cproto.Session) *db.PlayerTable {
+	// 获取创角初始化配置
+	// 创建角色&添加角色初始的资产
+	newPlayerTable, errCode := db.CreatePlayer(session)
+	if code.IsFail(errCode) {
+		p.ResponseCode(session, errCode)
+		return nil
+	}
+	// TODO 更新最后一次登陆的角色信息到中心节点
+
+	// 抛出角色创建事件
+	playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, newPlayerTable.Nickname, newPlayerTable.Gender)
+	p.PostEvent(&playerCreateEvent)
+	return newPlayerTable
+}
+
+func buildPBPlayer(playerTable *db.PlayerTable) *pb.Player {
+	return &pb.Player{
 		PlayerId:   playerTable.ID,
-		PlayerName: playerTable.Name,
+		PlayerName: playerTable.Nickname,
 		Level:      playerTable.Level,
 		CreateTime: playerTable.CreateTime,
 		Exp:        playerTable.Exp,

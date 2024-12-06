@@ -8,6 +8,7 @@ import (
 	"gameserver/internal/code"
 	"gameserver/internal/data"
 	rpcCenter "gameserver/internal/rpc/center"
+	sessionKey "gameserver/internal/session_key"
 )
 
 type devSdk struct {
@@ -19,23 +20,26 @@ func (devSdk) SdkId() int32 {
 }
 
 func (p devSdk) Login(_ *data.SdkRow, params Params, callback Callback) {
-	accountName, _ := params.GetString("account")
-	password, _ := params.GetString("password")
+	pcode, _ := params.GetString("code")
+	channel := params.GetInt("channel", 0)
+	platform := params.GetInt("platform", 0)
 
-	if accountName == "" || password == "" {
+	if pcode == "" || channel == 0 || platform == 0 {
 		err := cherryError.Errorf("account or password params is empty.")
 		callback(code.LoginError, nil, err)
 		return
 	}
 
-	accountId := rpcCenter.GetDevAccount(p.app, accountName, password)
-	if accountId < 1 {
+	info, ok := rpcCenter.GetAccountInfo(p.app, int32(channel), int32(platform), pcode)
+	if ok != code.OK {
 		callback(code.LoginError, nil)
 		return
 	}
 
 	callback(code.OK, map[string]string{
-		"open_id": cherryString.ToString(accountId),
+		sessionKey.OpenID:   cherryString.ToString(pcode),
+		sessionKey.PlayerID: cherryString.ToString(info.Uid),
+		sessionKey.ServerID: cherryString.ToString(info.ServerId),
 	})
 }
 

@@ -4,6 +4,7 @@ import (
 	cslice "gameserver/cherry/extend/slice"
 	cstring "gameserver/cherry/extend/string"
 	cfacade "gameserver/cherry/facade"
+	clog "gameserver/cherry/logger"
 	"gameserver/cherry/net/parser/pomelo"
 	pmessage "gameserver/cherry/net/parser/pomelo/message"
 	cproto "gameserver/cherry/net/proto"
@@ -18,9 +19,7 @@ var (
 
 	// 角色进入游戏时的前三个协议
 	beforeLoginRoutes = []string{
-		"game.player.select", //查询玩家角色
-		"game.player.create", //玩家创建角色
-		"game.player.enter",  //玩家角色进入游戏
+		"game.player.enter", //玩家角色进入游戏
 	}
 
 	notLoginRsp = &pb.Int32{
@@ -73,5 +72,14 @@ func gameNodeRoute(agent *pomelo.Agent, session *cproto.Session, route *pmessage
 
 	childId := cstring.ToString(session.Uid)
 	targetPath := cfacade.NewChildPath(serverId, route.HandleName(), childId)
-	pomelo.ClusterLocalDataRoute(agent, session, route, msg, serverId, targetPath)
+	err := pomelo.ClusterLocalDataRoute(agent, session, route, msg, serverId, targetPath)
+	if err != nil {
+		clog.Warnf("[sid = %s,uid = %d,route = %s] cluster local data error. err= %v",
+			agent.SID(),
+			agent.UID(),
+			msg.Route,
+			err,
+		)
+		return
+	}
 }

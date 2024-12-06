@@ -25,7 +25,7 @@ func Run(profileFilePath, nodeId string) {
 	app.Register(db.New())
 
 	app.AddActors(
-		&account.ActorAccount{},
+		&account.ActorAccounts{},
 		&ops.ActorOps{},
 	)
 

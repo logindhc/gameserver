@@ -11,7 +11,7 @@ import (
 )
 
 type DelayedBuffer[K string | int64, T any] struct {
-	cache      *cache.LRUCache[K, T]
+	cache      cache.ICache[K, T]
 	db         *gorm.DB
 	prefix     string
 	updates    *atomic.Value
@@ -19,7 +19,7 @@ type DelayedBuffer[K string | int64, T any] struct {
 	bufferSize int
 }
 
-func NewDelayedBuffer[K string | int64, T any](db *gorm.DB, cache *cache.LRUCache[K, T], prefix string) *DelayedBuffer[K, T] {
+func NewDelayedBuffer[K string | int64, T any](db *gorm.DB, cache cache.ICache[K, T], prefix string) *DelayedBuffer[K, T] {
 	bufferSize := 5000
 	buffer := &DelayedBuffer[K, T]{
 		cache:      cache,
@@ -52,14 +52,14 @@ func (d *DelayedBuffer[K, T]) flushLoop() {
 func (d *DelayedBuffer[K, T]) Add(entity *T) *T {
 	k := getKey(entity)
 	d.deletes.Remove(k.(K))
-	go func() {
-		tx := d.db.Create(entity)
-		if tx.Error == nil {
-			clog.Debugf("%s#id:%v 添加成功", d.prefix, k)
-		} else {
-			clog.Errorf("%s#id:%v 添加失败 %v", d.prefix, k, entity)
-		}
-	}()
+	//go func() {
+	tx := d.db.Create(entity)
+	if tx.Error == nil {
+		clog.Debugf("%s#id:%v 添加成功", d.prefix, k)
+	} else {
+		clog.Errorf("%s#id:%v 添加失败 %v", d.prefix, k, entity)
+	}
+	//}()
 	return entity
 }
 

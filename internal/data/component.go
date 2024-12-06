@@ -7,23 +7,15 @@ import (
 )
 
 var (
-	AreaConfig       = &areaConfig{}
-	AreaGroupConfig  = &areaGroupConfig{}
-	AreaServerConfig = &areaServerConfig{}
-	SdkConfig        = &sdkConfig{}
-	CodeConfig       = &codeConfig{}
-	PlayerInitConfig = &playerInitConfig{}
+	SdkConfig  = &sdkConfig{}
+	CodeConfig = &codeConfig{}
 )
 
 func New() *cherryDataConfig.Component {
 	dataConfig := cherryDataConfig.New()
 	dataConfig.Register(
-		AreaConfig,
-		AreaGroupConfig,
-		AreaServerConfig,
 		SdkConfig,
 		CodeConfig,
-		PlayerInitConfig,
 	)
 	return dataConfig
 }

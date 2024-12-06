@@ -3,9 +3,8 @@
     "sdkId": 1,
     "callbackName": "dev",
     "salt": "123456",
-    "pidList": [
-      2126001,
-      2126002
+    "channelIdList": [
+      101
     ],
     "desc": "开发模式，自建注册帐号模式进行登录"
   },
@@ -19,7 +18,7 @@
       "md5Key": "md5 key",
       "callbackKey": "callback key"
     },
-    "pidList": [
+    "channelIdList": [
       2126003
     ],
     "desc": "quick sdk https://www.quicksdk.com/"

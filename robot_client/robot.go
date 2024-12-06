@@ -23,11 +23,12 @@ type (
 		Token      string
 		ServerId   int32
 		PID        int32
-		UID        int64
+		CID        int32
 		OpenId     string
 		PlayerId   int64
 		PlayerName string
 		StartTime  cherryTime.CherryTime
+		address    string
 	}
 )
 
@@ -37,21 +38,19 @@ func New(client *cherryClient.Client) *Robot {
 	}
 }
 
-// GetToken  http登录获取token对象
-// http://172.16.124.137/login?pid=2126003&account=test1&password=test1
-func (p *Robot) GetToken(url string, pid, userName, password string) error {
+// GetserverInfo  http登录获取token对象
+// http://172.16.124.137/serverInfo?pid=2126003&account=test1&password=test1
+func (p *Robot) GetServerInfo(url, pCode, channel, platform string) error {
 	// http登陆获取token json对象
-	requestURL := fmt.Sprintf("%s/login", url)
+	requestURL := fmt.Sprintf("%s/serverInfo/%s", url, channel)
 	jsonBytes, _, err := cherryHttp.GET(requestURL, map[string]string{
-		"pid":      pid,      //sdk包id
-		"account":  userName, //帐号名
-		"password": password, //密码
+		"code":     pCode,    //帐号名
+		"platform": platform, //平台id
 	})
 
 	if err != nil {
 		return err
 	}
-
 	// 转换json对象
 	rsp := code.Result{}
 	if err = jsoniter.Unmarshal(jsonBytes, &rsp); err != nil {
@@ -59,108 +58,41 @@ func (p *Robot) GetToken(url string, pid, userName, password string) error {
 	}
 
 	if code.IsFail(rsp.Code) {
-		return cherryError.Errorf("get Token fail. [message = %s]", rsp.Message)
+		return cherryError.Errorf("GetServerInfo fail. [code = %v]", rsp.Code)
 	}
-
-	// 获取token值
-	p.Token = rsp.Data.(string)
-	p.TagName = fmt.Sprintf("%s_%s", pid, userName)
+	maps := rsp.Data.(map[string]interface{})
+	servers := maps["server"].(map[string]interface{})
+	p.address = fmt.Sprintf("%v%v", servers["server_host"].(string), servers["server_port"].(string))
+	p.ServerId = int32(servers["server_id"].(float64))
+	p.Token = maps["token"].(string)
+	p.TagName = fmt.Sprintf("%s_%s", channel, pCode)
 	p.StartTime = cherryTime.Now()
-	p.Debugf("get token success. %v", p.Token)
+	p.Debugf("GetServerInfo success. %v", p.Token)
 	return nil
 }
 
 // UserLogin 用户登录对某游戏服
-func (p *Robot) UserLogin(serverId int32) error {
+func (p *Robot) UserLogin() error {
 	route := "gate.user.login"
 
-	p.Debugf("[%s] [UserLogin] request ServerID = %d", p.TagName, serverId)
+	p.Debugf("[%s] [UserLogin] request ServerID = %d", p.TagName, p.ServerId)
 
-	msg, err := p.Request(route, &pb.LoginRequest{
-		ServerId: serverId,
-		Token:    p.Token,
-		Params:   nil,
+	msg, err := p.Request(route, &pb.C2SLogin{
+		Token:  p.Token,
+		Params: nil,
 	})
 
 	if err != nil {
 		return err
 	}
 
-	p.ServerId = serverId
-
-	rsp := &pb.LoginResponse{}
+	rsp := new(pb.S2CLogin)
 	err = p.Serializer().Unmarshal(msg.Data, rsp)
 	if err != nil {
 		return err
 	}
-
-	p.UID = rsp.Uid
-	p.PID = rsp.Pid
-	p.OpenId = rsp.OpenId
-
+	p.PlayerId = rsp.Uid
 	p.Debugf("[%s] [UserLogin] response = %+v", p.TagName, rsp)
-	return nil
-}
-
-// PlayerSelect 查看玩家列表
-func (p *Robot) PlayerSelect() error {
-	route := "game.player.select"
-
-	msg, err := p.Request(route, &pb.None{})
-	if err != nil {
-		return err
-	}
-
-	rsp := &pb.PlayerSelectResponse{}
-	err = p.Serializer().Unmarshal(msg.Data, rsp)
-	if err != nil {
-		return err
-	}
-
-	if len(rsp.List) < 1 {
-		p.Debugf("[%s] not found player list.", p.TagName)
-		return nil
-	}
-
-	p.PlayerId = rsp.List[0].PlayerId
-	p.PlayerName = rsp.List[0].PlayerName
-
-	p.Debugf("[%s] [PlayerSelect] response PlayerID = %d,PlayerName = %s", p.TagName, p.PlayerId, p.PlayerName)
-
-	return nil
-}
-
-// ActorCreate 创建角色
-func (p *Robot) ActorCreate() error {
-	if p.PlayerId > 0 {
-		p.Debugf("[%s] deny create actor", p.TagName)
-		return nil
-	}
-
-	route := "game.player.create"
-	gender := rand.Int31n(1)
-
-	req := &pb.PlayerCreateRequest{
-		PlayerName: "p" + p.OpenId,
-		Gender:     gender,
-	}
-
-	msg, err := p.Request(route, req)
-	if err != nil {
-		return err
-	}
-
-	rsp := &pb.PlayerCreateResponse{}
-	err = p.Serializer().Unmarshal(msg.Data, rsp)
-	if err != nil {
-		return err
-	}
-
-	p.PlayerId = rsp.Player.PlayerId
-	p.PlayerName = rsp.Player.PlayerName
-
-	p.Debugf("[%s] [ActorCreate] PlayerID = %d,ActorName = %s", p.TagName, p.PlayerId, p.PlayerName)
-
 	return nil
 }
 
@@ -181,35 +113,23 @@ func (p *Robot) ActorEnter() error {
 	if err != nil {
 		return err
 	}
+	player := rsp.GetPlayer()
 
-	p.Debugf("[%s] [ActorEnter] response PlayerID = %d,ActorName = %s", p.TagName, p.PlayerId, p.PlayerName)
+	p.PlayerName = player.PlayerName
+
+	p.Debugf("[%s] [PlayerEnter] response PlayerID = %d,PlayerName = %s", p.TagName, p.PlayerId, p.PlayerName)
 	return nil
 }
 
-// ActorEnter 角色获取道具信息
+// GetItemInfo 角色获取道具信息
 func (p *Robot) GetItemInfo() error {
 	route := "game.player.getItemInfo"
 	req := &pb.None{}
 
-	msg, err := p.Request(route, req)
+	_, err := p.Request(route, req)
 	if err != nil {
 		return err
 	}
-
-	rsp := &pb.PlayerSelectResponse{}
-	err = p.Serializer().Unmarshal(msg.Data, rsp)
-	if err != nil {
-		return err
-	}
-
-	if len(rsp.List) < 1 {
-		p.Debugf("[%s] not found getItemInfo.", p.TagName)
-		return nil
-	}
-
-	p.PlayerId = rsp.List[0].PlayerId
-	p.PlayerName = rsp.List[0].PlayerName
-
 	p.Debugf("[%s] [getItemInfo] response PlayerID = %d,PlayerName = %s", p.TagName, p.PlayerId, p.PlayerName)
 	return nil
 }

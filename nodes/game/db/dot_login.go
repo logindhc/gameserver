@@ -6,6 +6,13 @@ import (
 	"gameserver/internal/utils"
 )
 
+var DotLoginRepository *repository.LoggerRepository[int64, DotLogin]
+
+func (log *DotLogin) InitRepository() {
+	DotLoginRepository = repository.NewLoggerRepository[int64, DotLogin](database.GetLogDB(), "dot_login", true)
+	persistence.RegisterRepository(DotLoginRepository)
+}
+
 type DotLogin struct {
 	ID         int64  `gorm:"column:id;primaryKey;autoIncrement:false" `
 	DayIndex   int    `gorm:"column:day_index;primaryKey;autoIncrement:false" monthSharding:"true" partition:"day_index"`
@@ -17,11 +24,4 @@ type DotLogin struct {
 func (log *DotLogin) TableName() string {
 	//DayIndex格式为yyyyMMdd
 	return utils.GetMonthTbName("dot_login", log.DayIndex) //用这个DayIndex 做表名分月
-}
-
-var DotLoginRepository *repository.LoggerRepository[int64, DotLogin]
-
-func (log *DotLogin) InitRepository() {
-	DotLoginRepository = repository.NewLoggerRepository[int64, DotLogin](database.GetLogDB(), "dot_login", true)
-	persistence.RegisterRepository(DotLoginRepository)
 }

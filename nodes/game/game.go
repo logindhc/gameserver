@@ -6,6 +6,7 @@ import (
 	"gameserver/cherry"
 	cherryCron "gameserver/cherry/components/cron"
 	cherryGops "gameserver/cherry/components/gops"
+	cherryredis "gameserver/cherry/components/redis"
 	cherrySnowflake "gameserver/cherry/extend/snowflake"
 	cstring "gameserver/cherry/extend/string"
 	cherryUtils "gameserver/cherry/extend/utils"
@@ -13,7 +14,6 @@ import (
 	"gameserver/hotfix"
 	"gameserver/hotfix/symbols"
 	checkCenter "gameserver/internal/component/check_center"
-	"gameserver/internal/component/redis"
 	"gameserver/internal/data"
 	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/module/player"
@@ -37,14 +37,14 @@ func Run(profileFilePath, nodeId string) {
 	app.Register(cherryGops.New())
 	// 注册调度组件
 	app.Register(cherryCron.New())
+	// 注册redis组件
+	app.Register(cherryredis.New())
 	// 注册数据配置组件
 	app.Register(data.New())
 	// 注册检测中心节点组件，确认中心节点启动后，再启动当前节点
 	app.Register(checkCenter.New())
 	// 注册db组件
 	app.Register(db.New())
-	// 注册redis组件
-	app.Register(redis.New())
 
 	app.AddActors(
 		&player.ActorPlayers{},

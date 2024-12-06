@@ -6733,7 +6733,7 @@ proto.pb.PlayerAttribute = {
 goog.object.extend(exports, proto.pb);
 
 },{"google-protobuf":4}],9:[function(require,module,exports){
-// source: rpc.proto
+// source: nrpc.proto
 /**
  * @fileoverview
  * @enhanceable

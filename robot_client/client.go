@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	username, pwd string
+	username string
 )
 
-func main() {
+func main2() {
 	ctx, cancel := context.WithCancel(context.Background())
 	// 监听关闭信号
 	sigChan := make(chan os.Signal, 1)
@@ -51,43 +51,20 @@ func scanner(cli *Robot) {
 		line := input.Text()
 		split := strings.Split(line, " ")
 		if split[0] == "help" {
-			fmt.Println("register|token login select|create enter item")
+			fmt.Println("serverInfo enter item")
 			continue
 		}
-		if split[0] == "register" {
-			username = split[1]
-			pwd = split[2]
-			maps := map[string]string{
-				split[1]: split[2],
-			}
-			RegisterDevAccount(url, maps)
-			continue
-		} else if split[0] == "token" {
+		if split[0] == "serverInfo" {
 			if len(split) >= 2 {
 				username = split[1]
 			}
-			if len(split) >= 3 {
-				pwd = split[2]
-			}
-			err := cli.GetToken(url, pid, username, pwd)
+			err := cli.GetServerInfo(url, username, channel, platform)
 			if err != nil {
 				continue
 			}
 			continue
 		} else if split[0] == "login" {
-			err := cli.UserLogin(serverId)
-			if err != nil {
-				continue
-			}
-			continue
-		} else if split[0] == "select" {
-			err := cli.PlayerSelect()
-			if err != nil {
-				continue
-			}
-			continue
-		} else if split[0] == "create" {
-			err := cli.ActorCreate()
+			err := cli.UserLogin()
 			if err != nil {
 				continue
 			}

@@ -10,7 +10,6 @@ import (
 	"gameserver/internal/code"
 	"gameserver/internal/data"
 	"gameserver/internal/pb"
-	rpcCenter "gameserver/internal/rpc/center"
 	sessionKey "gameserver/internal/session_key"
 	"gameserver/internal/token"
 )
@@ -45,8 +44,8 @@ func (p *ActorAgent) setSession(req *pb.StringKeyValue) {
 	}
 }
 
-// login 用户登录，验证帐号 (*pb.LoginResponse, int32)
-func (p *ActorAgent) login(session *cproto.Session, req *pb.LoginRequest) {
+// login 用户登录验证 (*pb.LoginResponse, int32)
+func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 	agent, found := pomelo.GetAgent(p.ActorID())
 	if !found {
 		return
@@ -59,20 +58,20 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.LoginRequest) {
 		return
 	}
 
-	// 验证pid是否配置
-	sdkRow := data.SdkConfig.Get(userToken.PID)
+	// 验证channelId是否配置
+	sdkRow := data.SdkConfig.Get(userToken.Channel)
 	if sdkRow == nil {
-		agent.ResponseCode(session, code.PIDError, true)
+		agent.ResponseCode(session, code.ChannelIDError, true)
 		return
 	}
 
-	// 根据token带来的sdk参数，从中心节点获取uid
-	uid, errCode := rpcCenter.GetUID(p.App(), sdkRow.SdkId, userToken.PID, userToken.OpenID)
-	if uid == 0 || code.IsFail(errCode) {
-		agent.ResponseCode(session, code.AccountBindFail, true)
-		return
-	}
-
+	//// 根据token带来的sdk参数，从中心节点获取uid
+	//uid, errCode := rpcCenter.GetUID(p.App(), sdkRow.SdkId, userToken.PID, userToken.OpenID)
+	//if uid == 0 || code.IsFail(errCode) {
+	//	agent.ResponseCode(session, code.AccountBindFail, true)
+	//	return
+	//}
+	uid := userToken.UID
 	p.checkGateSession(uid)
 
 	if err := agent.Bind(uid); err != nil {
@@ -81,16 +80,15 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.LoginRequest) {
 		return
 	}
 
-	agent.Session().Set(sessionKey.ServerID, cstring.ToString(req.ServerId))
-	agent.Session().Set(sessionKey.PID, cstring.ToString(userToken.PID))
-	agent.Session().Set(sessionKey.OpenID, userToken.OpenID)
-
-	response := &pb.LoginResponse{
+	agent.Session().Set(sessionKey.ServerID, cstring.ToString(userToken.ServerId))
+	agent.Session().Set(sessionKey.ChannelID, cstring.ToString(userToken.Channel))
+	agent.Session().Set(sessionKey.PlatformID, cstring.ToString(userToken.Platform))
+	agent.Session().Set(sessionKey.OpenID, cstring.ToString(userToken.OpenId))
+	response := &pb.S2CLogin{
 		Uid:    uid,
-		Pid:    userToken.PID,
-		OpenId: userToken.OpenID,
+		Params: nil,
 	}
-
+	clog.Infof("login uid = %d", uid)
 	agent.Response(session, response)
 }
 
@@ -100,12 +98,12 @@ func (p *ActorAgent) validateToken(base64Token string) (*token.Token, int32) {
 		return nil, code.AccountTokenValidateFail
 	}
 
-	platformRow := data.SdkConfig.Get(userToken.PID)
-	if platformRow == nil {
-		return nil, code.PIDError
+	sdkRow := data.SdkConfig.Get(userToken.Channel)
+	if sdkRow == nil {
+		return nil, code.ChannelIDError
 	}
 
-	statusCode, ok := token.Validate(userToken, platformRow.Salt)
+	statusCode, ok := token.Validate(userToken, sdkRow.Salt)
 	if ok == false {
 		return nil, statusCode
 	}

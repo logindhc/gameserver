@@ -18,14 +18,14 @@ import (
 )
 
 var (
-	keyPrefix         = "/gameserver/cherry/node/"
+	keyPrefix         = "/node/"
 	registerKeyFormat = keyPrefix + "%s"
 )
 
 // ETCD etcd方式发现服务
 type ETCD struct {
-	app cfacade.IApplication
 	cdiscovery.DiscoveryDefault
+	app     cfacade.IApplication
 	prefix  string
 	config  clientv3.Config
 	ttl     int64

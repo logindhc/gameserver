@@ -2,12 +2,13 @@ package controller
 
 import (
 	cherryGin "gameserver/cherry/components/gin"
-	cherryString "gameserver/cherry/extend/string"
+	cstring "gameserver/cherry/extend/string"
 	cherryLogger "gameserver/cherry/logger"
 	"gameserver/internal/code"
 	"gameserver/internal/data"
-	rpcCenter "gameserver/internal/rpc/center"
+	sessionKey "gameserver/internal/session_key"
 	"gameserver/internal/token"
+	"gameserver/nodes/web/cache"
 	"gameserver/nodes/web/sdk"
 )
 
@@ -17,65 +18,84 @@ type Controller struct {
 
 func (p *Controller) Init() {
 	group := p.Group("/")
-	group.GET("/", p.index)
-	group.GET("/hello", p.hello)
-	group.GET("/register", p.register)
-	group.GET("/login", p.login)
-	group.GET("/server/list/:pid", p.serverList)
+	group.GET("/update", p.updateServer)
+	group.GET("/serverInfo/:channel", p.serverInfo)
 }
 
-// index h5客户端
-func (p *Controller) index(c *cherryGin.Context) {
-	c.HTML200("index.html")
-}
-
-// hello 输出json示例
-// http://127.0.0.1/hello
-func (p *Controller) hello(c *cherryGin.Context) {
-	// 输出json
-	code.RenderResult(c, code.OK, map[string]string{
-		"data": "hello",
-	})
-}
-
-// register 开发模式帐号注册
-// http://127.0.0.1/register?account=test11&password=test11
-func (p *Controller) register(c *cherryGin.Context) {
-	accountName := c.GetString("account", "", true)
-	password := c.GetString("password", "", true)
-
-	statusCode := rpcCenter.RegisterDevAccount(p.App, accountName, password, c.ClientIP())
-	code.RenderResult(c, statusCode)
-}
-
-// login 根据pid获取sdkConfig，与第三方进行帐号登陆效验
-// http://127.0.0.1/login?pid=2126001&account=test1&password=test1
-func (p *Controller) login(c *cherryGin.Context) {
-	pid := c.GetInt32("pid", 0, true)
-
-	if pid < 1 {
-		cherryLogger.Warnf("if pid < 1 {. params=%s", c.GetParams())
-		code.RenderResult(c, code.PIDError)
+// 后台更新服务器状态
+// http://127.0.0.1/update?server_id=10001&status=1&server_host=3&server_port=123&sign=123&time=123
+func (p *Controller) updateServer(c *cherryGin.Context) {
+	serverId := c.GetInt("server_id", 0, true)
+	if serverId < 1 {
+		cherryLogger.Warnf("if serverId < 1 . params=%s", c.GetParams())
+		code.RenderResult(c, code.Error)
+		return
+	}
+	status := c.GetInt("status", 0, true)
+	if status < 1 {
+		cherryLogger.Warnf("if status < 1 . params=%s", c.GetParams())
+		code.RenderResult(c, code.Error)
+		return
+	}
+	serverHost := c.GetString("server_host", "", true)
+	if cstring.IsBlank(serverHost) {
+		cherryLogger.Warnf("if serverHost is blank . params=%s", c.GetParams())
+		code.RenderResult(c, code.Error)
+		return
+	}
+	serverPort := c.GetString("server_port", "", true)
+	if cstring.IsBlank(serverPort) {
+		cherryLogger.Warnf("if serverPort is blank . params=%s", c.GetParams())
+		code.RenderResult(c, code.Error)
+		return
+	}
+	server := &cache.Server{
+		ServerId:   serverId,
+		Status:     status,
+		ServerHost: serverHost,
+		ServerPort: serverPort,
+	}
+	err := cache.UpdateServerStatus(server)
+	if err != nil {
+		cherryLogger.Warnf("update server status error. server=%v, error=%s", server, err)
+		code.RenderResult(c, code.Error)
 		return
 	}
 
-	config := data.SdkConfig.Get(pid)
+	code.RenderResult(c, code.OK)
+}
+
+// login 根据channel获取sdkConfig，与第三方进行帐号登陆效验,验证完毕后，返回token和连接地址
+// http://127.0.0.1/serverInfo?channel=101&code=test11&platform=3&time=123&sign=123
+func (p *Controller) serverInfo(c *cherryGin.Context) {
+	channel := c.GetInt32("channel", 0, true)
+	if channel < 1 {
+		cherryLogger.Warnf("if channel < 1 . params=%s", c.GetParams())
+		code.RenderResult(c, code.ChannelIDError)
+		return
+	}
+	platform := c.GetInt32("platform", 0, true)
+	if platform < 1 {
+		cherryLogger.Warnf("if platform < 1 . params=%s", c.GetParams())
+		code.RenderResult(c, code.ChannelIDError)
+		return
+	}
+
+	config := data.SdkConfig.Get(channel)
 	if config == nil {
-		cherryLogger.Warnf("if platformConfig == nil {. params=%s", c.GetParams())
+		cherryLogger.Warnf("if platformConfig == nil . params=%s", c.GetParams())
 		code.RenderResult(c, code.LoginError)
 		return
 	}
 
 	sdkInvoke, err := sdk.GetInvoke(config.SdkId)
 	if err != nil {
-		cherryLogger.Warnf("[pid = %d] get invoke error. params=%s", pid, c.GetParams())
-		code.RenderResult(c, code.PIDError)
+		cherryLogger.Warnf("[channel = %d] get invoke error. params=%s", channel, c.GetParams())
+		code.RenderResult(c, code.ChannelIDError)
 		return
 	}
 
 	params := c.GetParams(true)
-	params["pid"] = cherryString.ToString(pid)
-
 	// invoke login
 	sdkInvoke.Login(config, params, func(statusCode int32, result sdk.Params, error ...error) {
 		if code.IsFail(statusCode) {
@@ -83,7 +103,6 @@ func (p *Controller) login(c *cherryGin.Context) {
 			if len(error) > 0 {
 				cherryLogger.Warnf("code = %d, error = %s", statusCode, error[0])
 			}
-
 			code.RenderResult(c, statusCode)
 			return
 		}
@@ -94,52 +113,33 @@ func (p *Controller) login(c *cherryGin.Context) {
 			return
 		}
 
-		openId, found := result.GetString("open_id")
+		openId, found := result.GetString(sessionKey.OpenID)
 		if found == false {
-			cherryLogger.Warnf("callback result map not found `open_id`. result = %s", result)
+			cherryLogger.Warnf("callback result map not found `openId`. result = %s", result)
 			code.RenderResult(c, code.LoginError)
 			return
 		}
 
-		base64Token := token.New(pid, openId, config.Salt).ToBase64()
-		code.RenderResult(c, code.OK, base64Token)
-	})
-}
-
-// severList 区服列表
-// http://127.0.0.1/server/list/2126001
-func (p *Controller) serverList(c *cherryGin.Context) {
-	pid := c.GetInt32("pid", 2126001)
-
-	if pid < 1 {
-		cherryLogger.Warnf("if pid < 1 {. params=%v", c.GetParams())
-		code.RenderResult(c, code.PIDError)
-		return
-	}
-
-	areaGroup, found := data.AreaGroupConfig.Get(pid)
-	if found == false {
-		code.RenderResult(c, code.PIDError)
-		return
-	}
-
-	dataList := &struct {
-		Areas   []*data.AreaRow       `json:"areas"`
-		Servers []*data.AreaServerRow `json:"servers"`
-	}{}
-
-	for _, areaId := range areaGroup.AreaIdList {
-		areaRow, found := data.AreaConfig.Get(areaId)
+		uidStr, found := result.GetString(sessionKey.PlayerID)
 		if found == false {
-			continue
+			cherryLogger.Warnf("callback result map not found `uid`. result = %s", result)
+			code.RenderResult(c, code.LoginError)
+			return
 		}
-		dataList.Areas = append(dataList.Areas, areaRow)
-
-		serverList := data.AreaServerConfig.ListWithAreaId(areaRow.AreaId)
-		if len(serverList) > 0 {
-			dataList.Servers = append(dataList.Servers, serverList...)
+		uid := cstring.ToInt64D(uidStr)
+		serverId := result.GetInt(sessionKey.ServerID)
+		// get server status
+		server, err2 := cache.GetServerStatus(serverId)
+		if err2 != nil {
+			cherryLogger.Warnf("get server status error. serverId=%d, error=%s", serverId, err2)
+			code.RenderResult(c, code.ServerError)
+			return
 		}
-	}
-
-	code.RenderResult(c, code.OK, dataList)
+		base64Token := token.New(uid, openId, channel, platform, int32(serverId), config.Salt).ToBase64()
+		res := map[string]interface{}{
+			"token":  base64Token,
+			"server": server,
+		}
+		code.RenderResult(c, code.OK, res)
+	})
 }

@@ -1,4 +1,4 @@
-package redis
+package cherryredis
 
 import (
 	"context"
@@ -60,6 +60,16 @@ func (r *Component) newRedis() {
 }
 
 func (c *Component) OnAfterInit() {
+}
+
+func (c *Component) Stop() {
+	clog.Infof("close redis client [address = %s]", c.Address)
+	if c.rdb != nil {
+		err := c.rdb.Close()
+		if err != nil {
+			clog.Error(err)
+		}
+	}
 }
 
 func GetRds() *redis.Client {

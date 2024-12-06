@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 	"fmt"
+	cherryredis "gameserver/cherry/components/redis"
 	cherryString "gameserver/cherry/extend/string"
-	"gameserver/internal/component/redis"
 	"time"
 )
 
@@ -38,7 +38,7 @@ var (
 
 func GetLoginToken(openId string) int64 {
 	key := fmt.Sprintf("%s%s", userIdRedisKey, openId)
-	userStr, err := redis.GetRds().Get(context.Background(), key).Result()
+	userStr, err := cherryredis.GetRds().Get(context.Background(), key).Result()
 	if err != nil {
 		return 0
 	}
@@ -47,5 +47,5 @@ func GetLoginToken(openId string) int64 {
 
 func SetLoginToken(openId string, userId int64) {
 	key := fmt.Sprintf("%s%s", userIdRedisKey, openId)
-	redis.GetRds().Set(context.Background(), key, userId, expTime)
+	cherryredis.GetRds().Set(context.Background(), key, userId, expTime)
 }

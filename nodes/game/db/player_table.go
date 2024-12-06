@@ -5,7 +5,6 @@ import (
 	clog "gameserver/cherry/logger"
 	cproto "gameserver/cherry/net/proto"
 	"gameserver/internal/code"
-	"gameserver/internal/data"
 	"gameserver/internal/persistence"
 	"gameserver/internal/persistence/repository"
 	sessionKey "gameserver/internal/session_key"
@@ -14,10 +13,11 @@ import (
 // PlayerTable 角色基础表
 type PlayerTable struct {
 	ID             int64  `gorm:"primaryKey;autoIncrement:false;column:id;comment:id" json:"id"`
-	PID            int32  `gorm:"column:pid;comment:平台id" json:"pid"`
+	Channel        int32  `gorm:"column:channel;comment:渠道id" json:"channel"`
+	Platform       int32  `gorm:"column:platform;comment:平台id" json:"platform"`
 	OpenId         string `gorm:"column:open_id;comment:平台open_id" json:"openId"`
 	ServerId       int32  `gorm:"column:server_id;comment:创角时的游戏服id" json:"serverId"`
-	Name           string `gorm:"column:player_name;comment:角色名称" json:"name"`
+	Nickname       string `gorm:"column:nickname;comment:角色名称" json:"nickname"`
 	Gender         int32  `gorm:"column:gender;comment:角色性别" json:"gender"`
 	Level          int32  `gorm:"column:level;comment:角色等级" json:"level"`
 	Exp            int64  `gorm:"column:exp;comment:角色经验" json:"exp"`
@@ -30,44 +30,43 @@ func (*PlayerTable) TableName() string {
 	return "player"
 }
 
-var PlayerRepository *repository.LruRepository[int64, PlayerTable]
+var PlayerRepository repository.IRepository[int64, PlayerTable]
 
 func (p *PlayerTable) InitRepository() {
-	PlayerRepository = repository.NewLruRepository[int64, PlayerTable](database.GetGameDB(), p.TableName())
+	PlayerRepository = repository.NewRedisRepository[int64, PlayerTable](database.GetGameDB(), p.TableName())
 	persistence.RegisterRepository(PlayerRepository)
 }
 
-func CreatePlayer(session *cproto.Session, name string, serverId int32, playerInit *data.PlayerInitRow) (*PlayerTable, int32) {
-	pid := session.GetInt32(sessionKey.PID)
+func CreatePlayer(session *cproto.Session) (*PlayerTable, int32) {
+	channel := session.GetInt32(sessionKey.ChannelID)
+	platform := session.GetInt32(sessionKey.PlatformID)
 	openId := session.GetString(sessionKey.OpenID)
+	serverId := session.GetInt32(sessionKey.ServerID)
 
-	if session.Uid < 1 || pid < 1 || openId == "" {
-		clog.Warnf("create playerTable fail. pid or openId is error. [name = %s, pid = %v, openId = %v]",
-			name,
-			pid,
+	if session.Uid < 1 || channel < 1 || openId == "" {
+		clog.Warnf("create playerTable fail. pid or openId is error. [name = %v, pid = %v, openId = %v]",
+			session.Uid,
+			channel,
 			openId,
 		)
 		return nil, code.PlayerCreateFail
 	}
 	playerTable := &PlayerTable{
 		ID:         session.Uid,
-		PID:        pid,
+		Channel:    channel,
+		Platform:   platform,
 		OpenId:     openId,
 		ServerId:   serverId,
-		Name:       name,
-		Gender:     playerInit.Gender,
-		Level:      playerInit.Level,
+		Nickname:   "",
+		Gender:     0,
+		Level:      1,
 		Exp:        0,
-		CreateTime: cherryTime.Now().ToMillisecond(),
+		CreateTime: cherryTime.Now().ToSecond(),
 	}
 
 	add := PlayerRepository.Add(playerTable)
 	if add == nil {
 		return nil, code.PlayerCreateFail
 	}
-	// TODO 初始化角色相关的表
-	// 道具表
-	// 英雄表
-
 	return playerTable, code.OK
 }

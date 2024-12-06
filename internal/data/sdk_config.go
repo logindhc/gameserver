@@ -8,12 +8,12 @@ import (
 
 type (
 	SdkRow struct {
-		SdkId        int32             `json:"sdkId"`        // sdk id
-		CallbackName string            `json:"callbackName"` // 支付回调名称路由使用
-		Salt         string            `json:"-"`            // !禁止JSON输出
-		Params       map[string]string `json:"-"`            // !禁止JSON输出
-		PIDList      []int32           `json:"pidList"`      // sdk包id列表(一个sdk可以输出多个安装包)
-		Desc         string            `json:"desc"`         // 描述
+		SdkId         int32             `json:"sdkId"`         // sdk id
+		CallbackName  string            `json:"callbackName"`  // 支付回调名称路由使用
+		Salt          string            `json:"-"`             // !禁止JSON输出
+		Params        map[string]string `json:"-"`             // !禁止JSON输出
+		ChannelIdList []int32           `json:"channelIdList"` // sdk包id列表(一个sdk可以输出多个安装包)
+		Desc          string            `json:"desc"`          // 描述
 	}
 
 	// sdk平台参数
@@ -45,7 +45,7 @@ func (p *sdkConfig) OnLoad(maps interface{}, _ bool) (int, error) {
 			continue
 		}
 
-		for _, pid := range loadConfig.PIDList {
+		for _, pid := range loadConfig.ChannelIdList {
 			loadMaps[pid] = loadConfig
 		}
 	}
@@ -58,10 +58,10 @@ func (p *sdkConfig) OnLoad(maps interface{}, _ bool) (int, error) {
 func (p *sdkConfig) OnAfterLoad(_ bool) {
 }
 
-func (p *sdkConfig) Get(pid int32) *SdkRow {
-	platformRow, found := p.maps[pid]
+func (p *sdkConfig) Get(channelId int32) *SdkRow {
+	sdkRow, found := p.maps[channelId]
 	if found {
-		return platformRow
+		return sdkRow
 	}
 
 	return nil

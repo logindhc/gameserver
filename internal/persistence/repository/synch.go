@@ -9,7 +9,7 @@ import (
 
 type SynchRepository[K string | int64, T any] struct {
 	db     *gorm.DB
-	buffer *buffer.SyncBuffer[K, T]
+	buffer buffer.IBuffer[K, T]
 	sync.Mutex
 }
 

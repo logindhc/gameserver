@@ -3,6 +3,7 @@ package cherryDataConfig
 import (
 	"context"
 	"fmt"
+	cherryredis "gameserver/cherry/components/redis"
 	"github.com/go-redis/redis/v8"
 
 	cerr "gameserver/cherry/error"
@@ -44,23 +45,11 @@ func (r *SourceRedis) Init(_ IDataConfig) {
 		clog.Warnf("[data_config]->[%s] node in `%s` file not found.", r.Name(), cprofile.Name())
 		return
 	}
-
-	r.newRedis()
+	//需要先注册redis，再注册数据源
+	r.rdb = cherryredis.GetRds()
 	r.close = make(chan bool)
 
 	go r.newSubscribe()
-}
-
-func (r *SourceRedis) newRedis() {
-	r.rdb = redis.NewClient(&redis.Options{
-		Addr:     r.Address,
-		Password: r.Password,
-		DB:       r.DB,
-		OnConnect: func(ctx context.Context, cn *redis.Conn) error {
-			clog.Infof("data config for redis connected")
-			return nil
-		},
-	})
 }
 
 func (r *SourceRedis) newSubscribe() {

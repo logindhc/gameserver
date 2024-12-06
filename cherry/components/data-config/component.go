@@ -110,7 +110,6 @@ func (d *Component) onLoadConfig(cfg IConfig, data []byte, reload bool) {
 		clog.Warnf("[config = %s] execute Load() error = %s", cfg.Name(), err)
 		return
 	}
-
 	clog.Infof("[config = %s] loaded. [size = %d]", cfg.Name(), size)
 }
 

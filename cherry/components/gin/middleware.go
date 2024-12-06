@@ -2,6 +2,9 @@
 package cherryGin
 
 import (
+	"fmt"
+	cherryCrypto "gameserver/cherry/extend/crypto"
+	cstring "gameserver/cherry/extend/string"
 	csync "gameserver/cherry/extend/sync"
 	clog "gameserver/cherry/logger"
 	"net"
@@ -110,7 +113,29 @@ func RecoveryWithZap(stack bool) GinHandlerFunc {
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()
+		// 开始时间
+		startTime := time.Now()
 		c.Next()
+		// 结束时间
+		endTime := time.Now()
+		// 消耗的时间
+		latencyTime := endTime.Sub(startTime)
+		// 请求方式
+		reqMethod := c.Request.Method
+		// 请求路由
+		reqUri := c.Request.RequestURI
+		// 状态码
+		statusCode := c.Writer.Status()
+		// 用户IP
+		clientIP := c.ClientIP()
+		// 日志格式
+		clog.Debugf("| %3d | %13v | %15s | %s %s",
+			statusCode,
+			latencyTime,
+			clientIP,
+			reqMethod,
+			reqUri,
+		)
 	}
 }
 
@@ -131,6 +156,34 @@ func Cors(domain ...string) GinHandlerFunc {
 
 		if method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
+		}
+		c.Next()
+	}
+}
+
+func Md5Filter(md5Key string) GinHandlerFunc {
+	return func(c *Context) {
+		if cstring.IsBlank(md5Key) {
+			//不配置就不做验证md5
+			c.Next()
+			return
+		}
+		sign := c.GetString("sign", "", true)
+		if cstring.IsBlank(sign) {
+			clog.Debug("req param sign is nil")
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		timeStamp := c.GetInt64("time", 0, true)
+		if timeStamp <= 0 {
+			clog.Debug("req param time is nil or 0")
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		md5 := cherryCrypto.MD5(fmt.Sprintf("%v%s", timeStamp, md5Key))
+		if sign != md5 {
+			clog.Debugf("md5 check failed, sign = %s, md5 = %s", sign, md5)
+			c.AbortWithStatus(http.StatusForbidden)
 		}
 		c.Next()
 	}

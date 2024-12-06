@@ -39,6 +39,9 @@ func (p *AppBuilder) Startup() {
 		app.SetCluster(cluster)
 		app.Register(cluster)
 
+		//etcd := cherryETCD.New()
+		//cdiscovery.Register(etcd)
+
 		discovery := cdiscovery.New()
 		app.SetDiscovery(discovery)
 		app.Register(discovery)

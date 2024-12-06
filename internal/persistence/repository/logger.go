@@ -7,7 +7,7 @@ import (
 
 type LoggerRepository[K string | int64, T any] struct {
 	db            *gorm.DB
-	buffer        *buffer.LoggerBuffer[K, T]
+	buffer        buffer.IBuffer[K, T]
 	prefix        string
 	monthSharding bool
 }

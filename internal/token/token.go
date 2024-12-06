@@ -11,21 +11,27 @@ import (
 )
 
 const (
-	hashFormat      = "pid:%d,openid:%s,timestamp:%d"
+	hashFormat      = "uid:%d,open_id:%s,channel:%d,platform:%d,server_id:%d,timestamp:%d"
 	tokenExpiredDay = 3
 )
 
 type Token struct {
-	PID       int32  `json:"pid"`
-	OpenID    string `json:"open_id"`
+	UID       int64  `gorm:"column:uid;comment:玩家ID" json:"uid"`
+	OpenId    string `json:"open_id"`
+	Channel   int32  `json:"channel"`
+	Platform  int32  `json:"platform"`
+	ServerId  int32  `json:"server_id"`
 	Timestamp int64  `json:"tt"`
 	Hash      string `json:"hash"`
 }
 
-func New(pid int32, openId string, appKey string) *Token {
+func New(uid int64, openId string, channel int32, platform int32, serverId int32, appKey string) *Token {
 	token := &Token{
-		PID:       pid,
-		OpenID:    openId,
+		UID:       uid,
+		OpenId:    openId,
+		Channel:   channel,
+		Platform:  platform,
+		ServerId:  serverId,
 		Timestamp: cherryTime.Now().ToMillisecond(),
 	}
 
@@ -78,6 +84,6 @@ func Validate(token *Token, appKey string) (int32, bool) {
 }
 
 func BuildHash(t *Token, appKey string) string {
-	value := fmt.Sprintf(hashFormat, t.PID, t.OpenID, t.Timestamp)
+	value := fmt.Sprintf(hashFormat, t.UID, t.OpenId, t.Channel, t.Platform, t.ServerId, t.Timestamp)
 	return cherryCrypto.MD5(value + appKey)
 }

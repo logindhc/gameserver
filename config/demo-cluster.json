@@ -11,12 +11,12 @@
     },
     "nats": {
       "master_node_id": "gc-master",
-      "address": "nats://192.168.1.113:4222",
+      "address": "nats://192.168.1.113:4333,nats://192.168.1.113:4444,nats://192.168.1.113:4555",
       "reconnect_delay": 1,
       "max_reconnects": 0,
       "request_timeout": 2,
-      "user": "",
-      "password": ""
+      "user": "root",
+      "password": "123456"
     }
   },
   "node": {
@@ -51,6 +51,14 @@
           "ref_logger": "gate_log"
         },
         "enable": true
+      },
+      {
+        "node_id": "gc-gate-2",
+        "address": ":10020",
+        "__settings__": {
+          "ref_logger": "gate2_log"
+        },
+        "enable": true
       }
     ],
     "web": [
@@ -58,7 +66,8 @@
         "node_id": "gc-web-1",
         "address": "127.0.0.1:8081",
         "__settings__": {
-          "ref_logger": "master_log"
+          "ref_logger": "web_log",
+          "md5_key":""
         },
         "enable": true
       }
@@ -72,6 +81,17 @@
             "log": "game_log_1"
           },
           "ref_logger": "game_log"
+        },
+        "enable": true
+      },
+      {
+        "node_id": "10002",
+        "__settings__": {
+          "db_id_list" : {
+            "default": "game_db_2",
+            "log": "game_log_2"
+          },
+          "ref_logger": "game2_log"
         },
         "enable": true
       }
@@ -94,6 +114,14 @@
       "file_link_path": "logs/center.log",
       "file_path_format": "logs/center_%Y%m%d%H%M.log"
     },
+    "web_log": {
+      "level": "debug",
+      "enable_console": true,
+      "enable_write_file": true,
+      "time_format" : "2006-01-02 15:04:05.000",
+      "file_link_path": "logs/web.log",
+      "file_path_format": "logs/web_%Y%m%d%H%M.log"
+    },
     "gate_log": {
       "level": "debug",
       "enable_console": true,
@@ -102,6 +130,14 @@
       "file_link_path": "logs/gate.log",
       "file_path_format": "logs/gate_%Y%m%d%H%M.log"
     },
+    "gate2_log": {
+      "level": "debug",
+      "enable_console": true,
+      "enable_write_file": true,
+      "time_format" : "2006-01-02 15:04:05.000",
+      "file_link_path": "logs/gate2.log",
+      "file_path_format": "logs/gate2_%Y%m%d%H%M.log"
+    },
     "game_log": {
       "level": "debug",
       "enable_console": true,
@@ -109,6 +145,14 @@
       "time_format" : "2006-01-02 15:04:05.000",
       "file_link_path": "logs/game.log",
       "file_path_format": "logs/game_%Y%m%d%H%M.log"
+    },
+    "game2_log": {
+      "level": "debug",
+      "enable_console": true,
+      "enable_write_file": true,
+      "time_format" : "2006-01-02 15:04:05.000",
+      "file_link_path": "logs/game2.log",
+      "file_path_format": "logs/game2_%Y%m%d%H%M.log"
     },
     "cross_log": {
       "level": "debug",
@@ -166,6 +210,30 @@
         "db_id": "game_log_1",
         "dsn" : "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local&timeout=5s&multiStatements=true",
         "db_name": "game_log_1",
+        "host": "192.168.1.113",
+        "user_name": "root",
+        "password": "123456",
+        "max_idle_connect": 10,
+        "max_open_connect": 100,
+        "log_mode": true
+      },
+      {
+        "enable": true,
+        "db_id": "game_db_2",
+        "dsn" : "",
+        "db_name": "game_db_2",
+        "host": "192.168.1.113",
+        "user_name": "root",
+        "password": "123456",
+        "max_idle_connect": 10,
+        "max_open_connect": 100,
+        "log_mode": true
+      },
+      {
+        "enable": true,
+        "db_id": "game_log_2",
+        "dsn" : "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local&timeout=5s&multiStatements=true",
+        "db_name": "game_log_2",
         "host": "192.168.1.113",
         "user_name": "root",
         "password": "123456",

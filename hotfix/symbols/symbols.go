@@ -21,7 +21,7 @@ func init() {
 //go:generate yaegi extract gameserver/internal/event
 //go:generate yaegi extract gameserver/internal/pb
 //go:generate yaegi extract gameserver/internal/data
-//go:generate yaegi extract gameserver/internal/session_key gameserver/internal/sessionKey
+// go:generate yaegi extract gameserver/internal/session_key gameserver/internal/sessionKey
 //go:generate yaegi extract gameserver/nodes/game/module/player
 //go:generate yaegi extract gameserver/nodes/game/module/online
 //go:generate yaegi extract gameserver/nodes/game/db

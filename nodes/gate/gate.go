@@ -2,14 +2,17 @@ package gate
 
 import (
 	"encoding/binary"
+	"fmt"
 	"gameserver/cherry"
 	cherryGops "gameserver/cherry/components/gops"
+	cherryString "gameserver/cherry/extend/string"
 	cfacade "gameserver/cherry/facade"
 	cconnector "gameserver/cherry/net/connector"
 	"gameserver/cherry/net/parser/pomelo"
 	"gameserver/cherry/net/parser/simple"
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/data"
+	"strings"
 	"time"
 )
 
@@ -42,8 +45,9 @@ func Run(profileFilePath, nodeId string) {
 func buildPomeloParser(app *cherry.AppBuilder) cfacade.INetParser {
 	// 使用pomelo网络数据包解析器
 	agentActor := pomelo.NewActor("user")
+	tcpAddress := cherryString.ToIntD(strings.TrimPrefix(app.Address(), ":"))
 	//创建一个tcp监听，用于client/robot压测机器人连接网关tcp
-	agentActor.AddConnector(cconnector.NewTCP(":10011"))
+	agentActor.AddConnector(cconnector.NewTCP(fmt.Sprintf(":%v", tcpAddress+1)))
 	//再创建一个websocket监听，用于h5客户端建立连接
 	agentActor.AddConnector(cconnector.NewWS(app.Address()))
 	//当有新连接创建Agent时，启动一个自定义(ActorAgent)的子actor
@@ -62,7 +66,8 @@ func buildPomeloParser(app *cherry.AppBuilder) cfacade.INetParser {
 // 构建简单的网络数据包解析器
 func buildSimpleParser(app *cherry.AppBuilder) cfacade.INetParser {
 	agentActor := simple.NewActor("user")
-	agentActor.AddConnector(cconnector.NewTCP(":10011"))
+	tcpAddress := cherryString.ToIntD(strings.TrimPrefix(app.Address(), ":"))
+	agentActor.AddConnector(cconnector.NewTCP(fmt.Sprintf(":%v", tcpAddress+1)))
 	agentActor.AddConnector(cconnector.NewWS(app.Address()))
 
 	agentActor.SetOnNewAgent(func(newAgent *simple.Agent) {

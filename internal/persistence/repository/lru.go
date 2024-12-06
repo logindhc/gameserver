@@ -1,47 +1,61 @@
 package repository
 
 import (
+	cherryredis "gameserver/cherry/components/redis"
 	clog "gameserver/cherry/logger"
 	"gameserver/internal/persistence/buffer"
 	"gameserver/internal/persistence/cache"
 	"gorm.io/gorm"
 	"reflect"
-	"sync"
 	"time"
 )
 
-type LruRepository[K string | int64, T any] struct {
-	cache  *cache.LRUCache[K, T]
+type DefaultRepository[K string | int64, T any] struct {
+	cache  cache.ICache[K, T]
 	db     *gorm.DB
-	buffer *buffer.DelayedBuffer[K, T]
+	buffer buffer.IBuffer[K, T]
 	prefix string
-	lock   *sync.Mutex
 }
 
-func NewLruRepository[K string | int64, T any](db *gorm.DB, prefix string) *LruRepository[K, T] {
-	// lru 过期设置为2个小时
-	lruCache := cache.NewLRUCache[K, T](2 * time.Hour)
-	r := &LruRepository[K, T]{
+func NewRedisRepository[K string | int64, T any](db *gorm.DB, prefix string, params ...time.Duration) IRepository[K, T] {
+	// lru 默认过期设置为2个小时
+	expiration := 2 * time.Hour
+	if len(params) > 0 {
+		expiration = params[0]
+	}
+	redisCache := cache.NewRedisCache[K, T](cherryredis.GetRds(), prefix, expiration)
+	r := &DefaultRepository[K, T]{
+		db:     db,
+		cache:  redisCache,
+		buffer: buffer.NewDelayedBuffer[K, T](db, redisCache, prefix),
+		prefix: prefix,
+	}
+	return r
+}
+func NewDefaultRepository[K string | int64, T any](db *gorm.DB, prefix string, params ...time.Duration) IRepository[K, T] {
+	// lru 默认过期设置为2个小时
+	expiration := 2 * time.Hour
+	if len(params) > 0 {
+		expiration = params[0]
+	}
+	lruCache := cache.NewLRUCache[K, T](expiration)
+	r := &DefaultRepository[K, T]{
 		db:     db,
 		cache:  lruCache,
 		buffer: buffer.NewDelayedBuffer[K, T](db, lruCache, prefix),
 		prefix: prefix,
-		lock:   &sync.Mutex{},
 	}
 	return r
 }
 
-func (r *LruRepository[K, T]) Get(id K) *T {
-	// 从本地缓存中获取
+func (r *DefaultRepository[K, T]) Get(id K) *T {
+	// 从缓存中获取
 	entity := r.cache.Get(id)
 	if entity != nil {
 		return entity
 	}
-	r.lock.Lock()
-	defer r.lock.Unlock()
 	// 如果缓存中没有，则从数据库中获取
 	tx := r.db.Where("id = ?", id).Find(&entity)
-
 	if tx.RowsAffected == 0 {
 		return nil
 	}
@@ -54,7 +68,7 @@ func (r *LruRepository[K, T]) Get(id K) *T {
 	return entity
 }
 
-func (r *LruRepository[K, T]) GetAll() []*T {
+func (r *DefaultRepository[K, T]) GetAll() []*T {
 	var entities []*T
 	tx := r.db.Find(&entities)
 	if tx.Error != nil {
@@ -64,7 +78,7 @@ func (r *LruRepository[K, T]) GetAll() []*T {
 	return entities
 }
 
-func (r *LruRepository[K, T]) GetOrCreate(id K) *T {
+func (r *DefaultRepository[K, T]) GetOrCreate(id K) *T {
 	entity := r.Get(id)
 	if entity == nil {
 		entity = r.cache.Get(id)
@@ -77,7 +91,7 @@ func (r *LruRepository[K, T]) GetOrCreate(id K) *T {
 	return entity
 }
 
-func (r *LruRepository[K, T]) Add(entity *T) *T {
+func (r *DefaultRepository[K, T]) Add(entity *T) *T {
 	if entity == nil {
 		return nil
 	}
@@ -86,17 +100,17 @@ func (r *LruRepository[K, T]) Add(entity *T) *T {
 	if prev != nil {
 		return prev
 	}
-	//先缓存再异步入库
+	//先缓存再入库
 	r.cache.Put(id, entity)
 	return r.buffer.Add(entity)
 }
 
-func (r *LruRepository[K, T]) Remove(id K) {
+func (r *DefaultRepository[K, T]) Remove(id K) {
 	r.cache.Remove(id)
 	r.buffer.Remove(id)
 }
 
-func (r *LruRepository[K, T]) Update(entity *T, immediately ...bool) {
+func (r *DefaultRepository[K, T]) Update(entity *T, immediately ...bool) {
 	id := r.getId(entity)
 	r.cache.Put(id, entity)
 	if len(immediately) > 0 && immediately[0] {
@@ -106,15 +120,15 @@ func (r *LruRepository[K, T]) Update(entity *T, immediately ...bool) {
 	r.buffer.Update(entity)
 }
 
-func (r *LruRepository[K, T]) Flush() {
+func (r *DefaultRepository[K, T]) Flush() {
 	r.buffer.Flush()
 }
 
-func (r *LruRepository[K, T]) Where(query interface{}, args ...interface{}) (tx *gorm.DB) {
+func (r *DefaultRepository[K, T]) Where(query interface{}, args ...interface{}) (tx *gorm.DB) {
 	return r.db.Where(query, args...)
 }
 
-func (r *LruRepository[K, T]) setId(entity *T, id K) {
+func (r *DefaultRepository[K, T]) setId(entity *T, id K) {
 	val := reflect.ValueOf(entity)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -126,7 +140,7 @@ func (r *LruRepository[K, T]) setId(entity *T, id K) {
 	idField.Set(reflect.ValueOf(id))
 }
 
-func (r *LruRepository[K, T]) getId(entity *T) K {
+func (r *DefaultRepository[K, T]) getId(entity *T) K {
 	val := reflect.ValueOf(entity)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()

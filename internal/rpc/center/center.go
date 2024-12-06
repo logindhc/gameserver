@@ -1,28 +1,24 @@
 package rpcCenter
 
 import (
+	"fmt"
 	cfacade "gameserver/cherry/facade"
 	clog "gameserver/cherry/logger"
 	"gameserver/internal/code"
+	"gameserver/internal/constant"
 	"gameserver/internal/pb"
 )
 
 // route = 节点类型.节点handler.remote函数
 
 const (
-	centerType = "center"
-)
-
-const (
 	opsActor     = ".ops"
-	accountActor = ".account"
+	accountActor = ".account.%d_%s"
 )
 
 const (
-	ping               = "ping"
-	registerDevAccount = "registerDevAccount"
-	getDevAccount      = "getDevAccount"
-	getUID             = "getUID"
+	ping           = "ping"
+	getAccountInfo = "getAccountInfo"
 )
 
 const (
@@ -46,64 +42,26 @@ func Ping(app cfacade.IApplication) bool {
 	return rsp.Value
 }
 
-// RegisterDevAccount 注册帐号
-func RegisterDevAccount(app cfacade.IApplication, accountName, password, ip string) int32 {
-	req := &pb.DevRegister{
-		AccountName: accountName,
-		Password:    password,
-		Ip:          ip,
+// GetAccountInfo 获取帐号UID和区服信息
+func GetAccountInfo(app cfacade.IApplication, channel, platform int32, openId string) (*pb.AccountInfo, int32) {
+	req := &pb.AccountInfo{
+		Channel:  channel,
+		Platform: platform,
+		OpenId:   openId,
 	}
 
-	targetPath := GetTargetPath(app, accountActor)
-	rsp := &pb.Int32{}
-	errCode := app.ActorSystem().CallWait(sourcePath, targetPath, registerDevAccount, req, rsp)
+	targetPath := GetTargetPath(app, fmt.Sprintf(accountActor, channel, openId))
+	rsp := &pb.AccountInfo{}
+	errCode := app.ActorSystem().CallWait(sourcePath, targetPath, getAccountInfo, req, rsp)
 	if code.IsFail(errCode) {
-		clog.Warnf("[RegisterDevAccount] accountName = %s, errCode = %v", accountName, errCode)
-		return errCode
+		clog.Warnf("[GetAccountInfo] errCode = %v", errCode)
+		return nil, errCode
 	}
-
-	return rsp.Value
-}
-
-// GetDevAccount 获取帐号信息
-func GetDevAccount(app cfacade.IApplication, accountName, password string) int64 {
-	req := &pb.DevRegister{
-		AccountName: accountName,
-		Password:    password,
-	}
-
-	targetPath := GetTargetPath(app, accountActor)
-	rsp := &pb.Int64{}
-	errCode := app.ActorSystem().CallWait(sourcePath, targetPath, getDevAccount, req, rsp)
-	if code.IsFail(errCode) {
-		clog.Warnf("[GetDevAccount] accountName = %s, errCode = %v", accountName, errCode)
-		return 0
-	}
-
-	return rsp.Value
-}
-
-// GetUID 获取帐号UID
-func GetUID(app cfacade.IApplication, sdkId, pid int32, openId string) (cfacade.UID, int32) {
-	req := &pb.User{
-		SdkId:  sdkId,
-		Pid:    pid,
-		OpenId: openId,
-	}
-
-	targetPath := GetTargetPath(app, accountActor)
-	rsp := &pb.Int64{}
-	errCode := app.ActorSystem().CallWait(sourcePath, targetPath, getUID, req, rsp)
-	if code.IsFail(errCode) {
-		clog.Warnf("[GetUID] errCode = %v", errCode)
-		return 0, errCode
-	}
-
-	return rsp.Value, code.OK
+	return rsp, code.OK
 }
 
 func GetCenterNodeID(app cfacade.IApplication) string {
-	list := app.Discovery().ListByType(centerType)
+	list := app.Discovery().ListByType(constant.CenterType)
 	if len(list) > 0 {
 		return list[0].GetNodeId()
 	}

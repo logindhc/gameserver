@@ -4,6 +4,7 @@ import (
 	"gameserver/cherry"
 	cherryCron "gameserver/cherry/components/cron"
 	cherryGin "gameserver/cherry/components/gin"
+	cherryredis "gameserver/cherry/components/redis"
 	cherryFile "gameserver/cherry/extend/file"
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/data"
@@ -25,8 +26,11 @@ func Run(profileFilePath, nodeId string) {
 	// 注册数据配表组件
 	app.Register(data.New())
 
+	// 注册redis组件
+	app.Register(cherryredis.New())
+
 	// 加载http server组件
-	app.Register(httpServerComponent(app.Address()))
+	httpServerComponent(app)
 
 	// 加载sdk逻辑
 	sdk.Init(app)
@@ -35,12 +39,14 @@ func Run(profileFilePath, nodeId string) {
 	app.Startup()
 }
 
-func httpServerComponent(addr string) *cherryGin.Component {
+func httpServerComponent(app *cherry.AppBuilder) {
 	gin.SetMode(gin.DebugMode)
 
 	// new http server
-	httpServer := cherryGin.NewHttp("http_server", addr)
+	httpServer := cherryGin.NewHttp("http_server", app.Address())
 	httpServer.Use(cherryGin.Cors())
+
+	httpServer.Use(cherryGin.Md5Filter(app.Settings().GetString("md5_key", "")))
 
 	// http server使用gin组件搭建，这里增加一个RecoveryWithZap中间件
 	httpServer.Use(cherryGin.RecoveryWithZap(true))
@@ -57,6 +63,6 @@ func httpServerComponent(addr string) *cherryGin.Component {
 
 	//注册 controller
 	httpServer.Register(new(controller.Controller))
-
-	return httpServer
+	// 注册 http server
+	app.Register(httpServer)
 }

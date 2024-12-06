@@ -3,7 +3,8 @@ package code
 var (
 	OK                       int32 = 0   // is ok
 	Error                    int32 = 1   // error
-	PIDError                 int32 = 100 // pid错误
+	ChannelIDError           int32 = 100 // channel错误
+	ServerError              int32 = 101 // 获取服务器异常
 	LoginError               int32 = 201 // 登录异常
 	AccountAuthFail          int32 = 202 // 帐号授权失败
 	AccountBindFail          int32 = 203 // 帐号绑定失败
