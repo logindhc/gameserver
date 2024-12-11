@@ -20,56 +20,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// 节点状态
-type NodeState int32
-
-const (
-	NodeState_Open     NodeState = 0 // 开放状态,所有角色可以进入
-	NodeState_Maintain NodeState = 1 // 维护状态,白名单角色可以进入
-	NodeState_Closed   NodeState = 2 // 关闭状态,所有角色不可进入(同时踢除所有角色)
-)
-
-// Enum value maps for NodeState.
-var (
-	NodeState_name = map[int32]string{
-		0: "Open",
-		1: "Maintain",
-		2: "Closed",
-	}
-	NodeState_value = map[string]int32{
-		"Open":     0,
-		"Maintain": 1,
-		"Closed":   2,
-	}
-)
-
-func (x NodeState) Enum() *NodeState {
-	p := new(NodeState)
-	*p = x
-	return p
-}
-
-func (x NodeState) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (NodeState) Descriptor() protoreflect.EnumDescriptor {
-	return file_rpc_proto_enumTypes[0].Descriptor()
-}
-
-func (NodeState) Type() protoreflect.EnumType {
-	return &file_rpc_proto_enumTypes[0]
-}
-
-func (x NodeState) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use NodeState.Descriptor instead.
-func (NodeState) EnumDescriptor() ([]byte, []int) {
-	return file_rpc_proto_rawDescGZIP(), []int{0}
-}
-
 // 用户信息
 type AccountInfo struct {
 	state         protoimpl.MessageState
@@ -162,11 +112,8 @@ var file_rpc_proto_rawDesc = []byte{
 	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6f, 0x70, 0x65, 0x6e, 0x49, 0x64, 0x12, 0x1a, 0x0a,
 	0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52,
 	0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x69, 0x64,
-	0x18, 0x05, 0x20, 0x01, 0x28, 0x03, 0x52, 0x03, 0x75, 0x69, 0x64, 0x2a, 0x2f, 0x0a, 0x09, 0x4e,
-	0x6f, 0x64, 0x65, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x08, 0x0a, 0x04, 0x4f, 0x70, 0x65, 0x6e,
-	0x10, 0x00, 0x12, 0x0c, 0x0a, 0x08, 0x4d, 0x61, 0x69, 0x6e, 0x74, 0x61, 0x69, 0x6e, 0x10, 0x01,
-	0x12, 0x0a, 0x0a, 0x06, 0x43, 0x6c, 0x6f, 0x73, 0x65, 0x64, 0x10, 0x02, 0x42, 0x05, 0x5a, 0x03,
-	0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x03, 0x52, 0x03, 0x75, 0x69, 0x64, 0x42, 0x05, 0x5a, 0x03, 0x2f,
+	0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -181,11 +128,9 @@ func file_rpc_proto_rawDescGZIP() []byte {
 	return file_rpc_proto_rawDescData
 }
 
-var file_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_rpc_proto_goTypes = []interface{}{
-	(NodeState)(0),      // 0: pb.NodeState
-	(*AccountInfo)(nil), // 1: pb.AccountInfo
+	(*AccountInfo)(nil), // 0: pb.AccountInfo
 }
 var file_rpc_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -219,14 +164,13 @@ func file_rpc_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_rpc_proto_rawDesc,
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_rpc_proto_goTypes,
 		DependencyIndexes: file_rpc_proto_depIdxs,
-		EnumInfos:         file_rpc_proto_enumTypes,
 		MessageInfos:      file_rpc_proto_msgTypes,
 	}.Build()
 	File_rpc_proto = out.File

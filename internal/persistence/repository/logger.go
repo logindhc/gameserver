@@ -12,12 +12,16 @@ type LoggerRepository[K string | int64, T any] struct {
 	monthSharding bool
 }
 
-func NewLoggerRepository[K string | int64, T any](db *gorm.DB, prefix string, monthSharding bool) *LoggerRepository[K, T] {
+func NewLoggerRepository[K string | int64, T any](db *gorm.DB, prefix string, monthSharding ...bool) IRepository[K, T] {
+	monthShard := false
+	if len(monthSharding) > 0 {
+		monthShard = monthSharding[0]
+	}
 	r := &LoggerRepository[K, T]{
 		db:            db,
-		buffer:        buffer.NewLoggerBuffer[K, T](db, prefix, monthSharding),
+		buffer:        buffer.NewLoggerBuffer[K, T](db, prefix, monthShard),
 		prefix:        prefix,
-		monthSharding: monthSharding,
+		monthSharding: monthShard,
 	}
 	return r
 }

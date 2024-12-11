@@ -23,7 +23,7 @@ type LoggerBuffer[K string | int64, T any] struct {
 	batchSize     int
 }
 
-func NewLoggerBuffer[K string | int64, T any](db *gorm.DB, prefix string, monthSharding bool) *LoggerBuffer[K, T] {
+func NewLoggerBuffer[K string | int64, T any](db *gorm.DB, prefix string, monthSharding bool) IBuffer[K, T] {
 	batchSize := 200
 	var buffer = &LoggerBuffer[K, T]{
 		queue:         queue.NewArrayQueue[T](batchSize),
@@ -99,7 +99,7 @@ func (d *LoggerBuffer[K, T]) flush(immediately bool) {
 	size := d.queue.Size()
 	clog.Debugf("%s# batch add num %d \n", d.prefix, size)
 	d.locker.Lock()
-	var entities []*T
+	var entities = make([]*T, 0, size)
 	for i := 0; i < size; i++ {
 		entity, ok := d.queue.Dequeue()
 		if !ok {
