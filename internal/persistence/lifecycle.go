@@ -32,7 +32,6 @@ func Start(models []interface{}) {
 		initMethod := repoVal.MethodByName("InitRepository")
 		if initMethod.IsValid() && initMethod.Type().NumIn() == 0 { // 确保InitRepository方法存在且无}
 			initMethod.Call(nil)
-			clog.Debugf("Initialized repository for %v", repoVal.Type())
 		}
 	}
 }
@@ -49,7 +48,6 @@ func flushAllRepositories() {
 		flushMethod := repoVal.MethodByName("Flush")
 		if flushMethod.IsValid() && flushMethod.Type().NumIn() == 0 { // 确保Flush方法存在且无参数
 			flushMethod.Call(nil) // 调用Flush方法
-			clog.Debugf("Flushing repository for %v", repoVal.Type())
 		}
 	}
 }

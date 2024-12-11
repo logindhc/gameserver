@@ -49,8 +49,8 @@ func (p *ActorPlayer) sessionClose() {
 }
 
 // PlayerEnter 玩家进入游戏
-func (p *ActorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
-	playerId := req.Value
+func (p *ActorPlayer) playerEnter(session *cproto.Session, req *pb.C2SPlayerEnter) {
+	playerId := req.PlayerId
 	if playerId < 1 {
 		p.ResponseCode(session, code.PlayerIdError)
 		return
@@ -91,8 +91,7 @@ func (p *ActorPlayer) playerEnter(session *cproto.Session, req *pb.Int64) {
 	//module.Mail.ListPush(session, playerId)
 
 	// [99]最后推送 角色进入游戏响应结果
-	response := &pb.PlayerEnterResponse{}
-	response.GuideMaps = map[int32]int32{}
+	response := &pb.S2CPlayerEnter{}
 	response.Player = buildPBPlayer(playerTable)
 	p.Response(session, response)
 

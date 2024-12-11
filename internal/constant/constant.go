@@ -7,4 +7,6 @@ const (
 	MasterType   = "master"
 
 	ModelID = "ID"
+
+	GameOnlineKey = "game:online:"
 )

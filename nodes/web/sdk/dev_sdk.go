@@ -7,7 +7,6 @@ import (
 	cfacade "gameserver/cherry/facade"
 	"gameserver/internal/code"
 	"gameserver/internal/data"
-	rpcCenter "gameserver/internal/rpc/center"
 	sessionKey "gameserver/internal/session_key"
 )
 
@@ -30,16 +29,8 @@ func (p devSdk) Login(_ *data.SdkRow, params Params, callback Callback) {
 		return
 	}
 
-	info, ok := rpcCenter.GetAccountInfo(p.app, int32(channel), int32(platform), pcode)
-	if ok != code.OK {
-		callback(code.LoginError, nil)
-		return
-	}
-
 	callback(code.OK, map[string]string{
-		sessionKey.OpenID:   cherryString.ToString(pcode),
-		sessionKey.PlayerID: cherryString.ToString(info.Uid),
-		sessionKey.ServerID: cherryString.ToString(info.ServerId),
+		sessionKey.OpenID: cherryString.ToString(pcode),
 	})
 }
 

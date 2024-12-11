@@ -21,7 +21,6 @@ type (
 		*cherryClient.Client
 		PrintLog   bool
 		Token      string
-		ServerId   int32
 		PID        int32
 		CID        int32
 		OpenId     string
@@ -42,10 +41,11 @@ func New(client *cherryClient.Client) *Robot {
 // http://172.16.124.137/serverInfo?pid=2126003&account=test1&password=test1
 func (p *Robot) GetServerInfo(url, pCode, channel, platform string) error {
 	// http登陆获取token json对象
-	requestURL := fmt.Sprintf("%s/serverInfo/%s", url, channel)
+	requestURL := fmt.Sprintf("%s/api/serverInfo/%s", url, channel)
 	jsonBytes, _, err := cherryHttp.GET(requestURL, map[string]string{
 		"code":     pCode,    //帐号名
 		"platform": platform, //平台id
+		"version":  "1.0",
 	})
 
 	if err != nil {
@@ -61,13 +61,11 @@ func (p *Robot) GetServerInfo(url, pCode, channel, platform string) error {
 		return cherryError.Errorf("GetServerInfo fail. [code = %v]", rsp.Code)
 	}
 	maps := rsp.Data.(map[string]interface{})
-	servers := maps["server"].(map[string]interface{})
-	p.address = fmt.Sprintf("%v%v", servers["server_host"].(string), servers["server_port"].(string))
-	p.ServerId = int32(servers["server_id"].(float64))
+	p.address = fmt.Sprintf("%v:%v", maps["server_host"].(string), maps["server_port"].(string))
 	p.Token = maps["token"].(string)
 	p.TagName = fmt.Sprintf("%s_%s", channel, pCode)
 	p.StartTime = cherryTime.Now()
-	p.Debugf("GetServerInfo success. %v", p.Token)
+	p.Debugf("GetServerInfo success. %v", rsp)
 	return nil
 }
 
@@ -75,7 +73,7 @@ func (p *Robot) GetServerInfo(url, pCode, channel, platform string) error {
 func (p *Robot) UserLogin() error {
 	route := "gate.user.login"
 
-	p.Debugf("[%s] [UserLogin] request ServerID = %d", p.TagName, p.ServerId)
+	p.Debugf("[%s] [UserLogin] request route = %s", p.TagName, route)
 
 	msg, err := p.Request(route, &pb.C2SLogin{
 		Token:  p.Token,
@@ -99,8 +97,8 @@ func (p *Robot) UserLogin() error {
 // ActorEnter 角色进入游戏
 func (p *Robot) ActorEnter() error {
 	route := "game.player.enter"
-	req := &pb.Int64{
-		Value: p.PlayerId,
+	req := &pb.C2SPlayerEnter{
+		PlayerId: p.PlayerId,
 	}
 
 	msg, err := p.Request(route, req)
@@ -108,7 +106,7 @@ func (p *Robot) ActorEnter() error {
 		return err
 	}
 
-	rsp := &pb.PlayerEnterResponse{}
+	rsp := &pb.S2CPlayerEnter{}
 	err = p.Serializer().Unmarshal(msg.Data, rsp)
 	if err != nil {
 		return err

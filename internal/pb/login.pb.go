@@ -24,6 +24,7 @@ const (
 )
 
 // 登陆请求(建立连接后的第一条消息，验证通过后则进行后续流程)
+// gate.user.login
 type C2SLogin struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -80,6 +81,7 @@ func (x *C2SLogin) GetParams() map[int32]string {
 }
 
 // 登陆响应
+// gate.user.login
 type S2CLogin struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

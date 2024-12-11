@@ -11,27 +11,23 @@ import (
 )
 
 const (
-	hashFormat      = "uid:%d,open_id:%s,channel:%d,platform:%d,server_id:%d,timestamp:%d"
+	hashFormat      = "open_id:%s,channel:%d,platform:%d,timestamp:%d"
 	tokenExpiredDay = 3
 )
 
 type Token struct {
-	UID       int64  `gorm:"column:uid;comment:玩家ID" json:"uid"`
 	OpenId    string `json:"open_id"`
 	Channel   int32  `json:"channel"`
 	Platform  int32  `json:"platform"`
-	ServerId  int32  `json:"server_id"`
 	Timestamp int64  `json:"tt"`
 	Hash      string `json:"hash"`
 }
 
-func New(uid int64, openId string, channel int32, platform int32, serverId int32, appKey string) *Token {
+func New(openId string, channel int32, platform int32, appKey string) *Token {
 	token := &Token{
-		UID:       uid,
 		OpenId:    openId,
 		Channel:   channel,
 		Platform:  platform,
-		ServerId:  serverId,
 		Timestamp: cherryTime.Now().ToMillisecond(),
 	}
 
@@ -76,7 +72,7 @@ func Validate(token *Token, appKey string) (int32, bool) {
 
 	newHash := BuildHash(token, appKey)
 	if newHash != token.Hash {
-		cherryLogger.Warnf("hash validate fail. newHash = %s, token = %s", token)
+		cherryLogger.Warnf("hash validate fail. newHash = %s, token = %v", newHash, token)
 		return code.AccountTokenValidateFail, false
 	}
 
@@ -84,6 +80,6 @@ func Validate(token *Token, appKey string) (int32, bool) {
 }
 
 func BuildHash(t *Token, appKey string) string {
-	value := fmt.Sprintf(hashFormat, t.UID, t.OpenId, t.Channel, t.Platform, t.ServerId, t.Timestamp)
+	value := fmt.Sprintf(hashFormat, t.OpenId, t.Channel, t.Platform, t.Timestamp)
 	return cherryCrypto.MD5(value + appKey)
 }

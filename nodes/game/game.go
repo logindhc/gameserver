@@ -16,6 +16,7 @@ import (
 	checkCenter "gameserver/internal/component/check_center"
 	"gameserver/internal/data"
 	"gameserver/nodes/game/db"
+	"gameserver/nodes/game/job"
 	"gameserver/nodes/game/module/player"
 	"os"
 	"strings"
@@ -48,6 +49,7 @@ func Run(profileFilePath, nodeId string) {
 
 	app.AddActors(
 		&player.ActorPlayers{},
+		&job.ActorJob{},
 	)
 
 	go scanner()

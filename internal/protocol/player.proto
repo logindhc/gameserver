@@ -13,9 +13,14 @@ message Player {
   int64  createTime = 5;  // 创建时间
   int64  exp = 6;         // 经验值
 }
+// 进入游戏
+// game.player.enter
+message C2SPlayerEnter {
+  int64 playerId = 1; //玩家ID(登录成功获取)
+}
 
 // 进入游戏响应
-message PlayerEnterResponse {
+// game.player.enter
+message S2CPlayerEnter {
   Player player = 1;//玩家基础信息
-  map<int32, int32> guideMaps = 2;  // 新手引导记录列表
 }

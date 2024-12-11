@@ -62,7 +62,9 @@ func httpServerComponent(app *cherry.AppBuilder) {
 	httpServer.LoadHTMLFiles(viewFiles...)
 
 	//注册 controller
-	httpServer.Register(new(controller.Controller))
+	httpServer.Register(new(controller.Controller),
+		new(controller.GMController),
+		new(controller.MailController))
 	// 注册 http server
 	app.Register(httpServer)
 }

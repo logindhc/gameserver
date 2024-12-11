@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	cherrySnowflake "gameserver/cherry/extend/snowflake"
 	"gameserver/internal/persistence"
 	"gameserver/internal/persistence/repository"
@@ -30,8 +29,7 @@ func (*AccountTable) TableName() string {
 	return "account"
 }
 
-func CreateAccount(channel int32, openId string, platform int32, serverId int32) *AccountTable {
-	id := fmt.Sprintf("%d_%s", channel, openId)
+func CreateAccount(id string, channel int32, openId string, platform int32, serverId int32) *AccountTable {
 	account := AccountRepository.Get(id)
 	if account != nil {
 		return account

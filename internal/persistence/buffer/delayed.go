@@ -73,7 +73,7 @@ func (d *DelayedBuffer[K, T]) Update(entity *T) {
 	pending := d.updates.Load().(*concurrent.ConcurrentSet[K])
 	pending.Add(id.(K))
 	size := pending.Size()
-	clog.Debugf("updates %p %v \n", pending, size)
+	//clog.Debugf("updates %p %v \n", pending, size)
 	if size >= d.bufferSize {
 		d.flush()
 	}

@@ -3,6 +3,7 @@ package center
 import (
 	"gameserver/cherry"
 	"gameserver/cherry/components/cron"
+	cherryredis "gameserver/cherry/components/redis"
 	cherrySnowflake "gameserver/cherry/extend/snowflake"
 	"gameserver/internal/data"
 	"gameserver/nodes/center/db"
@@ -23,6 +24,8 @@ func Run(profileFilePath, nodeId string) {
 	app.Register(cherryCron.New())
 	app.Register(data.New())
 	app.Register(db.New())
+	// 注册redis组件
+	app.Register(cherryredis.New())
 
 	app.AddActors(
 		&account.ActorAccounts{},

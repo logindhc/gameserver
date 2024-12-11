@@ -1,6 +1,6 @@
 syntax = "proto3";
 option go_package = "/pb";
-package cherry.proto.pb;
+package pb;
 
 // 用户信息
 message AccountInfo {
@@ -9,11 +9,4 @@ message AccountInfo {
   string openId = 3;   // sdk的openid
   int32  serverId = 4; // 所在游戏服id
   int64  uid = 5;      // 用户id
-}
-
-// 节点状态
-enum NodeState {
-  Open = 0;     // 开放状态,所有角色可以进入
-  Maintain = 1; // 维护状态,白名单角色可以进入
-  Closed = 2;   // 关闭状态,所有角色不可进入(同时踢除所有角色)
 }

@@ -10,6 +10,7 @@ import (
 	"gameserver/internal/code"
 	"gameserver/internal/data"
 	"gameserver/internal/pb"
+	rpcCenter "gameserver/internal/rpc/center"
 	sessionKey "gameserver/internal/session_key"
 	"gameserver/internal/token"
 )
@@ -66,12 +67,13 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 	}
 
 	//// 根据token带来的sdk参数，从中心节点获取uid
-	//uid, errCode := rpcCenter.GetUID(p.App(), sdkRow.SdkId, userToken.PID, userToken.OpenID)
-	//if uid == 0 || code.IsFail(errCode) {
-	//	agent.ResponseCode(session, code.AccountBindFail, true)
-	//	return
-	//}
-	uid := userToken.UID
+	info, errCode := rpcCenter.GetAccountInfo(p.App(), userToken.Channel, userToken.Platform, userToken.OpenId)
+	if info == nil || code.IsFail(errCode) {
+		agent.ResponseCode(session, errCode, true)
+		return
+	}
+
+	uid := info.Uid
 	p.checkGateSession(uid)
 
 	if err := agent.Bind(uid); err != nil {
@@ -80,7 +82,7 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 		return
 	}
 
-	agent.Session().Set(sessionKey.ServerID, cstring.ToString(userToken.ServerId))
+	agent.Session().Set(sessionKey.ServerID, cstring.ToString(info.ServerId))
 	agent.Session().Set(sessionKey.ChannelID, cstring.ToString(userToken.Channel))
 	agent.Session().Set(sessionKey.PlatformID, cstring.ToString(userToken.Platform))
 	agent.Session().Set(sessionKey.OpenID, cstring.ToString(userToken.OpenId))
