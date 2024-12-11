@@ -17,6 +17,7 @@ type DefaultRepository[K string | int64, T any] struct {
 	prefix string
 }
 
+// NewRedisRepository 使用redis作为缓存，但批量update要从redis获取数据会耗时
 func NewRedisRepository[K string | int64, T any](db *gorm.DB, prefix string, params ...time.Duration) IRepository[K, T] {
 	// lru 默认过期设置为2个小时
 	expiration := 2 * time.Hour

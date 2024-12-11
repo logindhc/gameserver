@@ -33,7 +33,7 @@ func (*PlayerTable) TableName() string {
 var PlayerRepository repository.IRepository[int64, PlayerTable]
 
 func (p *PlayerTable) InitRepository() {
-	PlayerRepository = repository.NewRedisRepository[int64, PlayerTable](database.GetGameDB(), p.TableName())
+	PlayerRepository = repository.NewDefaultRepository[int64, PlayerTable](database.GetGameDB(), p.TableName())
 	persistence.RegisterRepository(PlayerRepository)
 }
 

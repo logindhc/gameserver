@@ -116,7 +116,7 @@ func (d *DelayedBuffer[K, T]) flush() {
 	all := f.All()
 	count := 0
 	start := time.Now()
-	var entities []*T
+	var entities = make([]*T, 0, size)
 	for _, id := range all {
 		entity := d.cache.Get(id)
 		if entity == nil {
@@ -131,5 +131,5 @@ func (d *DelayedBuffer[K, T]) flush() {
 	if tx.Error != nil {
 		clog.Errorf("%s# 批量更新失败 %v", d.prefix, tx.Error)
 	}
-	clog.Debugf("%s# [%p] delayerd sync flush num %d success, cos %v", d.prefix, flushes, count, time.Since(start))
+	clog.Debugf("%s# [%p] delayerd sync flush num %d success %d, cos %v", d.prefix, flushes, size, count, time.Since(start))
 }
