@@ -18,7 +18,8 @@ var (
 		&PlayerTable{},
 	}
 	logModels = []interface{}{
-		&DotLogin{},
+		&LogLogin{},
+		&LogRegister{},
 	}
 	// 记录最近触发的月份
 	lastJobTime = 0

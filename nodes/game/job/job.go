@@ -23,12 +23,17 @@ func (p *ActorJob) AliasID() string {
 func (p *ActorJob) OnInit() {
 	p.job()
 }
+func (p *ActorJob) OnStop() {
+	utils.DelGameNodeOnline(p.App().NodeId())
+}
 
 func (p *ActorJob) job() {
+	//启动就上报一次
+	utils.UpdateGameNodeOnline(p.App().NodeId(), float64(online.Count()))
 	job.GlobalTimer.BuildEveryFunc(time.Minute, func() {
 		nodeId := p.App().NodeId()
 		count := online.Count()
-		utils.UpdateNodeOnline(nodeId, float64(count))
+		utils.UpdateGameNodeOnline(nodeId, float64(count))
 		clog.Infof("[job] [nodeId = %s, onlineCount = %d]", nodeId, count)
 	})
 }

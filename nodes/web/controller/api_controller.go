@@ -35,14 +35,14 @@ func (p *Controller) serverInfo(c *cherryGin.Context) {
 	platform := c.GetInt32("platform", 0, true)
 	if platform < 1 {
 		cherryLogger.Warnf("if platform < 1 . params=%s", c.GetParams())
-		code.RenderResult(c, code.ChannelIDError)
+		code.RenderResult(c, code.PlatformIDError)
 		return
 	}
 
 	config := data.SdkConfig.Get(channel)
 	if config == nil {
 		cherryLogger.Warnf("if platformConfig == nil . params=%s", c.GetParams())
-		code.RenderResult(c, code.LoginError)
+		code.RenderResult(c, code.SDKError)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (p *Controller) serverInfo(c *cherryGin.Context) {
 	sdkInvoke, err := sdk.GetInvoke(config.SdkId)
 	if err != nil {
 		cherryLogger.Warnf("[channel = %d] get invoke error. params=%s", channel, c.GetParams())
-		code.RenderResult(c, code.ChannelIDError)
+		code.RenderResult(c, code.SDKError)
 		return
 	}
 
@@ -74,14 +74,14 @@ func (p *Controller) serverInfo(c *cherryGin.Context) {
 
 		if result == nil {
 			cherryLogger.Warnf("callback result map is nil. params= %s", c.GetParams())
-			code.RenderResult(c, code.LoginError)
+			code.RenderResult(c, code.SDKError)
 			return
 		}
 
 		openId, found := result.GetString(sessionKey.OpenID)
 		if found == false {
 			cherryLogger.Warnf("callback result map not found `openId`. result = %s", result)
-			code.RenderResult(c, code.LoginError)
+			code.RenderResult(c, code.SDKError)
 			return
 		}
 
@@ -96,22 +96,22 @@ func (p *Controller) serverInfo(c *cherryGin.Context) {
 		if cstring.IsNotBlank(channelInfo.Version) && version == channelInfo.Version {
 			//提审版本
 			isCheck = true
-			serverId = channelInfo.ServerIds[0] //提服直接获取第一个serverId，所有相同渠道的提审服应该是一样的
+			for sId := range channelInfo.ServerIds {
+				serverId = cstring.ToInt32D(sId) //提服直接获取一个serverId，所有相同渠道的提审服应该是一样的
+				continue
+			}
 		} else {
 			//根据最小负载的game节点
-			nodeIds, ok := utils.GetAllNodeIdByRank()
+			nodeIds, ok := utils.GetAllGameNodeIdByRank()
 			if ok != nil {
 				cherryLogger.Warnf("get game node id error. error=%s", ok)
 				code.RenderResult(c, code.ServerError)
 				return
 			}
 			for _, sId := range nodeIds {
-				for _, cId := range channelInfo.ServerIds { //渠道指定serverId，获取最小的负载
-					iId := cstring.ToInt32D(sId)
-					if iId == cId {
-						serverId = iId
-						break
-					}
+				if channelInfo.ServerIds[sId] { //渠道指定serverId，获取最小的负载
+					serverId = cstring.ToInt32D(sId)
+					continue
 				}
 			}
 			if serverId == 0 { //当前渠道拿不到服id，后台配置有问题
@@ -137,12 +137,8 @@ func (p *Controller) serverInfo(c *cherryGin.Context) {
 			//正常进服
 			res["server_host"] = server.ServerHost
 			res["server_port"] = server.ServerPort
-			if cstring.IsNotBlank(channelInfo.TipVersion) {
-				res["tip_version"] = channelInfo.TipVersion
-			}
-			if cstring.IsNotBlank(channelInfo.ForceVersion) {
-				res["force_version"] = channelInfo.ForceVersion
-			}
+			res["tip_version"] = channelInfo.TipVersion
+			res["force_version"] = channelInfo.ForceVersion
 		}
 		res["token"] = base64Token
 		res["is_check"] = isCheck

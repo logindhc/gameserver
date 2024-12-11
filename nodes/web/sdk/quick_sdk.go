@@ -24,14 +24,14 @@ func (quickSdk) Login(config *data.SdkRow, params Params, callback Callback) {
 	token, found := params.GetString("token")
 	if found == false || cstring.IsBlank(token) {
 		err := cerror.Error("token is nil")
-		callback(code.LoginError, nil, err)
+		callback(code.SDKError, nil, err)
 		return
 	}
 
 	uid, found := params.GetString("uid")
 	if found == false || cstring.IsBlank(uid) {
 		err := cerror.Error("uid is nil")
-		callback(code.LoginError, nil, err)
+		callback(code.SDKError, nil, err)
 		return
 	}
 
@@ -42,14 +42,14 @@ func (quickSdk) Login(config *data.SdkRow, params Params, callback Callback) {
 	})
 
 	if err != nil || rspBody == nil {
-		callback(code.LoginError, nil, err)
+		callback(code.SDKError, nil, err)
 		return
 	}
 
 	var result = string(rspBody)
 	if result != "1" {
 		cherryLogger.Warnf("quick sdk login fail. rsp =%s", rspBody)
-		callback(code.LoginError, nil, err)
+		callback(code.SDKError, nil, err)
 		return
 	}
 

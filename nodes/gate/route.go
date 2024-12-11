@@ -74,6 +74,7 @@ func gameNodeRoute(agent *pomelo.Agent, session *cproto.Session, route *pmessage
 	targetPath := cfacade.NewChildPath(serverId, route.HandleName(), childId)
 	err := pomelo.ClusterLocalDataRoute(agent, session, route, msg, serverId, targetPath)
 	if err != nil {
+		// todo 这里需要加上报警逻辑
 		clog.Warnf("[sid = %s,uid = %d,route = %s] cluster local data error. err= %v",
 			agent.SID(),
 			agent.UID(),

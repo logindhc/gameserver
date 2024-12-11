@@ -12,12 +12,12 @@ var (
 )
 
 type ChannelInfo struct {
-	Id           int32   `json:"id"`           // 渠道ID
-	Name         string  `json:"name"`         // 渠道名称
-	ServerIds    []int32 `json:"server_ids"`   // 服务器ID
-	Version      string  `json:"version"`      // 审核版本
-	TipVersion   string  `json:"tipVersion"`   //提示更新最小版本
-	ForceVersion string  `json:"forceVersion"` //强制更新最小版本
+	Id           int32           `json:"id"`           // 渠道ID
+	Name         string          `json:"name"`         // 渠道名称
+	ServerIds    map[string]bool `json:"server_ids"`   // 服务器ID
+	Version      string          `json:"version"`      // 审核版本
+	TipVersion   string          `json:"tipVersion"`   //提示更新最小版本
+	ForceVersion string          `json:"forceVersion"` //强制更新最小版本
 }
 
 func GetChannelInfo(id int32) (*ChannelInfo, error) {

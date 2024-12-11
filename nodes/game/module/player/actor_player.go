@@ -109,11 +109,15 @@ func (p *ActorPlayer) playerCreate(session *cproto.Session) *db.PlayerTable {
 		p.ResponseCode(session, errCode)
 		return nil
 	}
-	// TODO 更新最后一次登陆的角色信息到中心节点
-
+	db.LogRegisterRepository.Add(&db.LogRegister{
+		Device:   newPlayerTable.OpenId,
+		Channel:  newPlayerTable.Channel,
+		Platform: newPlayerTable.Platform,
+		Time:     newPlayerTable.CreateTime,
+	})
 	// 抛出角色创建事件
-	playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, newPlayerTable.Nickname, newPlayerTable.Gender)
-	p.PostEvent(&playerCreateEvent)
+	//playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, newPlayerTable.Nickname, newPlayerTable.Gender)
+	//p.PostEvent(&playerCreateEvent)
 	return newPlayerTable
 }
 

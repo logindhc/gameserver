@@ -64,7 +64,7 @@
     "web": [
       {
         "node_id": "gc-web-1",
-        "address": "127.0.0.1:8081",
+        "address": "0.0.0.0:10000",
         "__settings__": {
           "ref_logger": "web_log",
           "md5_key":""

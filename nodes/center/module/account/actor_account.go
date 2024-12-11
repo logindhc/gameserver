@@ -6,6 +6,7 @@ import (
 	cherryLogger "gameserver/cherry/logger"
 	cactor "gameserver/cherry/net/actor"
 	"gameserver/internal/code"
+	"gameserver/internal/constant"
 	"gameserver/internal/pb"
 	"gameserver/internal/utils"
 	"gameserver/nodes/center/db"
@@ -45,14 +46,20 @@ func (a *ActorAccount) getAccountInfo(req *pb.AccountInfo) (*pb.AccountInfo, int
 func (a *ActorAccount) getServerId() int32 {
 	//根据最小负载的game节点
 	serverId := int32(0)
-	nodeIds, err := utils.GetAllNodeIdByRank()
+	nodeIds, err := utils.GetAllGameNodeIdByRank()
 	if err != nil {
 		cherryLogger.Warnf("get game node id error. error=%s", err)
 		return serverId
 	}
-	serverId = cstring.ToInt32D(nodeIds[0])
-	if serverId == 0 {
-		return serverId
+	// 避免节点掉线，影响新用户
+	members := a.App().Discovery().ListByType(constant.GameNodeType)
+	for _, nodeId := range nodeIds {
+		for _, member := range members {
+			if member.GetNodeId() == nodeId {
+				serverId = cstring.ToInt32D(nodeId)
+				return serverId
+			}
+		}
 	}
 	return serverId
 }

@@ -5,7 +5,7 @@ import (
 	ctime "gameserver/cherry/extend/time"
 )
 
-func GetMonthTbName(tableNamePrefix string, fieldVal int) string {
+func GetMonthTbName(tableNamePrefix string, fieldVal int32) string {
 	if fieldVal == 0 {
 		return fmt.Sprintf("%s_%s", tableNamePrefix, ctime.Now().ToShortMonthFormat())
 	}

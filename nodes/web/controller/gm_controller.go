@@ -123,15 +123,10 @@ func (gc *GMController) updateChannel(c *cherryGin.Context) {
 		code.RenderResult(c, code.Error)
 		return
 	}
-	serverIdList, ok := cstring.SplitInt32(serverIds, ",")
-	if !ok {
-		cherryLogger.Warnf("if serverIds split error . params=%s", c.GetParams())
-		code.RenderResult(c, code.Error)
-		return
-	}
+	serverIdMap := cstring.SplitMapString(serverIds, ",")
 	channelInfo := new(cache.ChannelInfo)
 	channelInfo.Id = channelId
-	channelInfo.ServerIds = serverIdList
+	channelInfo.ServerIds = serverIdMap
 	name := c.GetString("name", "", true)
 	if cstring.IsNotBlank(name) {
 		channelInfo.Name = name

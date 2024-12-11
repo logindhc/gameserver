@@ -4,9 +4,10 @@ var (
 	OK                       int32 = 0   // is ok
 	Error                    int32 = 1   // error
 	ChannelIDError           int32 = 100 // channel错误
-	ServerError              int32 = 101 // 获取服务器异常
-	VersionError             int32 = 101 // version异常
-	LoginError               int32 = 201 // 登录异常
+	ServerError              int32 = 101 // 服务器异常
+	VersionError             int32 = 102 // version异常
+	PlatformIDError          int32 = 103 // channel错误
+	SDKError                 int32 = 201 // sdk验证异常
 	AccountAuthFail          int32 = 202 // 帐号授权失败
 	AccountBindFail          int32 = 203 // 帐号绑定失败
 	AccountTokenValidateFail int32 = 204 // token验证失败

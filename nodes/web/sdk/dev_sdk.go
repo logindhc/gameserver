@@ -25,7 +25,7 @@ func (p devSdk) Login(_ *data.SdkRow, params Params, callback Callback) {
 
 	if pcode == "" || channel == 0 || platform == 0 {
 		err := cherryError.Errorf("account or password params is empty.")
-		callback(code.LoginError, nil, err)
+		callback(code.SDKError, nil, err)
 		return
 	}
 

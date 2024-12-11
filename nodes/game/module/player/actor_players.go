@@ -54,20 +54,19 @@ func (p *ActorPlayers) onLoginEvent(e cfacade.IEventData) {
 	}
 	cherryTime := ctime.Now()
 	second := cherryTime.ToSecond()
-	total := 1
 
 	player := db.PlayerRepository.GetOrCreate(evt.PlayerId)
 	player.LastLoginTime = second
 	db.PlayerRepository.Update(player)
 
-	dotLogin := db.DotLogin{
+	dotLogin := db.LogLogin{
 		ID:         evt.PlayerId,
 		FirstTime:  &second,
 		LastTime:   &second,
-		DayIndex:   cherryTime.ToShortIntDateFormat(),
-		TotalCount: &total,
+		DayIndex:   cherryTime.ToShortInt32DateFormat(),
+		TotalCount: 1,
 	}
-	db.DotLoginRepository.Add(&dotLogin)
+	db.LogLoginRepository.Add(&dotLogin)
 
 	clog.Infof("[PlayerLoginEvent] [playerId = %d, onlineCount = %d]",
 		evt.PlayerId,

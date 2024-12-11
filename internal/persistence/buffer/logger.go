@@ -151,19 +151,19 @@ func (d *LoggerBuffer[K, T]) generateSql(entity *T) string {
 		temp = append(temp, d.processField(entityType, entityValue, i))
 	}
 	var left, values, updates strings.Builder
-	monthShardingVal := 0
+	monthShardingVal := int32(0)
 	for i := 0; i < len(temp); i++ {
 		field := temp[i]
 		if field.isNull {
 			continue
 		}
 		if field.isMonthShared {
-			monthShardingVal = field.fieldVal.(int)
+			monthShardingVal = field.fieldVal.(int32)
 		}
 		left.WriteString(fmt.Sprintf("`%s`,", field.sqlName))
 		fv := fmt.Sprintf("%v", field.fieldVal)
 		if field.typeIsStr {
-			fv = fmt.Sprintf("`%v`", field.fieldVal)
+			fv = fmt.Sprintf("'%v'", field.fieldVal)
 		}
 		values.WriteString(fmt.Sprintf("%s,", fv))
 		if field.onupdate == Repeat {

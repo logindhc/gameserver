@@ -163,7 +163,7 @@ func CamelToSnake(s string) string {
 	return string(result)
 }
 
-func SplitInt32(s string, sep string) ([]int32, bool) {
+func Split2MapInt32(s string, sep string) ([]int32, bool) {
 	strs := goStrings.Split(s, sep)
 	ret := make([]int32, 0, len(strs))
 	for _, item := range strs {
@@ -172,6 +172,28 @@ func SplitInt32(s string, sep string) ([]int32, bool) {
 			return nil, false
 		}
 		ret = append(ret, val)
+	}
+	return ret, true
+}
+
+func SplitMapString(s string, sep string) map[string]bool {
+	strs := goStrings.Split(s, sep)
+	ret := map[string]bool{}
+	for _, item := range strs {
+		ret[item] = true
+	}
+	return ret
+}
+
+func SplitMapInt32(s string, sep string) (map[int32]bool, bool) {
+	strs := goStrings.Split(s, sep)
+	ret := map[int32]bool{}
+	for _, item := range strs {
+		val, ok := ToInt32(item)
+		if !ok {
+			return nil, false
+		}
+		ret[val] = true
 	}
 	return ret, true
 }
