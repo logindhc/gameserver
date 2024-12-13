@@ -1,0 +1,13 @@
+syntax = "proto3";
+option go_package = "/rpc";
+package rpc;
+
+// 用户信息
+message AccountInfo {
+  int64  accountId = 1;      // 账号id
+  int32  channel = 2;      // 渠道ID
+  int32  platform = 3;      // 平台ID
+  string openId = 4;   // sdk的openid
+  int32  serverId = 5; // 所在游戏服id
+  int64  uid = 6;      // 用户id
+}

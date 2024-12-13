@@ -13,9 +13,10 @@ import (
 // PlayerTable 角色基础表
 type PlayerTable struct {
 	ID             int64  `gorm:"primaryKey;autoIncrement:false;column:id;comment:id" json:"id"`
-	Channel        int32  `gorm:"column:channel;comment:渠道id" json:"channel"`
-	Platform       int32  `gorm:"column:platform;comment:平台id" json:"platform"`
-	OpenId         string `gorm:"column:open_id;comment:平台open_id" json:"openId"`
+	Channel        int32  `gorm:"index;column:channel;comment:渠道id" json:"channel"`
+	Platform       int32  `gorm:"index;column:platform;comment:平台id" json:"platform"`
+	AccountId      int64  `gorm:"index;column:account_id;comment:游戏账号" json:"accountId"`
+	OpenId         string `gorm:"index;column:open_id;comment:平台open_id" json:"openId"`
 	ServerId       int32  `gorm:"column:server_id;comment:创角时的游戏服id" json:"serverId"`
 	Nickname       string `gorm:"column:nickname;comment:角色名称" json:"nickname"`
 	Gender         int32  `gorm:"column:gender;comment:角色性别" json:"gender"`
@@ -24,6 +25,10 @@ type PlayerTable struct {
 	CreateTime     int64  `gorm:"column:create_time;comment:创建时间" json:"createTime"`
 	LastLoginTime  int64  `gorm:"column:last_login_time;comment:最后登录时间" json:"lastLoginTime"`
 	LastLogoutTime int64  `gorm:"column:last_logout_time;comment:最后登出时间" json:"LastLogoutTime"`
+	White          int32  `gorm:"column:white;comment:白名单" json:"white"`
+	GmLevel        int32  `gorm:"column:gm_level;comment:gm等级" json:"gmLevel"`
+	Forbidden      int32  `gorm:"column:forbidden;comment:封禁" json:"forbidden"`
+	Country        int32  `gorm:"column:country;comment:国家" json:"country"`
 }
 
 func (*PlayerTable) TableName() string {
@@ -42,6 +47,7 @@ func CreatePlayer(session *cproto.Session) (*PlayerTable, int32) {
 	platform := session.GetInt32(sessionKey.PlatformID)
 	openId := session.GetString(sessionKey.OpenID)
 	serverId := session.GetInt32(sessionKey.ServerID)
+	accountId := session.GetInt64(sessionKey.AccountID)
 
 	if session.Uid < 1 || channel < 1 || openId == "" {
 		clog.Warnf("create playerTable fail. pid or openId is error. [name = %v, pid = %v, openId = %v]",
@@ -56,12 +62,17 @@ func CreatePlayer(session *cproto.Session) (*PlayerTable, int32) {
 		Channel:    channel,
 		Platform:   platform,
 		OpenId:     openId,
+		AccountId:  accountId,
 		ServerId:   serverId,
 		Nickname:   "",
 		Gender:     0,
 		Level:      1,
 		Exp:        0,
 		CreateTime: cherryTime.Now().ToSecond(),
+		White:      0,
+		GmLevel:    0,
+		Forbidden:  0,
+		Country:    61845,
 	}
 
 	add := PlayerRepository.Add(playerTable)

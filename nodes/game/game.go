@@ -14,6 +14,7 @@ import (
 	"gameserver/hotfix"
 	"gameserver/hotfix/symbols"
 	checkCenter "gameserver/internal/component/check_center"
+	serverinit "gameserver/internal/component/init_server"
 	"gameserver/internal/data"
 	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/job"
@@ -26,13 +27,15 @@ func Run(profileFilePath, nodeId string) {
 	if !cherryUtils.IsNumeric(nodeId) {
 		panic("node parameter must is number.")
 	}
+	if cstring.ToIntD(nodeId) >= 1024 || cstring.ToIntD(nodeId) < 1 {
+		panic("node parameter nodeId err.")
+	}
+	// 配置cherry引擎
+	app := cherry.Configure(profileFilePath, nodeId, false, cherry.Cluster)
 
 	// snowflake global id
 	serverId, _ := cstring.ToInt64(nodeId)
 	cherrySnowflake.SetDefaultNode(serverId)
-
-	// 配置cherry引擎
-	app := cherry.Configure(profileFilePath, nodeId, false, cherry.Cluster)
 
 	// diagnose
 	app.Register(cherryGops.New())
@@ -46,14 +49,16 @@ func Run(profileFilePath, nodeId string) {
 	app.Register(checkCenter.New())
 	// 注册db组件
 	app.Register(db.New())
+	// 注册初始化game节点缓存组件
+	app.Register(serverinit.New())
 
 	app.AddActors(
-		&player.ActorPlayers{},
 		&job.ActorJob{},
+		&player.ActorPlayers{},
+		//&item.ActorItems{},
 	)
 
 	go scanner()
-
 	app.Startup()
 
 }

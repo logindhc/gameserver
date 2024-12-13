@@ -6,4 +6,5 @@ const (
 	ChannelID  = "channel_id"  // int32 渠道id
 	PlatformID = "platform_id" // int32 平台id
 	PlayerID   = "player_id"   // int64 玩家id
+	AccountID  = "account_id"  // int64 账号id
 )

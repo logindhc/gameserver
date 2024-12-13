@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	cherryredis "gameserver/cherry/components/redis"
 	jsoniter "github.com/json-iterator/go"
@@ -22,7 +21,7 @@ type ChannelInfo struct {
 
 func GetChannelInfo(id int32) (*ChannelInfo, error) {
 	key := fmt.Sprintf("%s%v", RedisChannel, id)
-	res, err := cherryredis.GetRds().Get(context.Background(), key).Result()
+	res, err := cherryredis.GetRds().Get(ctx, key).Result()
 	channel := new(ChannelInfo)
 	if err != nil {
 		return channel, err
@@ -40,7 +39,7 @@ func UpdateChannelInfo(channel *ChannelInfo) error {
 	if err != nil {
 		return err
 	}
-	tx := cherryredis.GetRds().Set(context.Background(), key, data, 0)
+	tx := cherryredis.GetRds().Set(ctx, key, data, 0)
 	if tx.Err() != nil {
 		return err
 	}
@@ -49,7 +48,7 @@ func UpdateChannelInfo(channel *ChannelInfo) error {
 
 func DelChannelInfo(id int32) error {
 	key := fmt.Sprintf("%s%v", RedisChannel, id)
-	tx := cherryredis.GetRds().Del(context.Background(), key)
+	tx := cherryredis.GetRds().Del(ctx, key)
 	if tx.Err() != nil {
 		return tx.Err()
 	}
@@ -70,7 +69,7 @@ func UpdateAppCheckInfo(channelId int32, version string, tipVersion string, forc
 	if err != nil {
 		return err
 	}
-	tx := cherryredis.GetRds().Set(context.Background(), key, data, 0)
+	tx := cherryredis.GetRds().Set(ctx, key, data, 0)
 	if tx.Err() != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func DelAppCheckInfo(channelId int32) error {
 	if err != nil {
 		return err
 	}
-	tx := cherryredis.GetRds().Set(context.Background(), key, data, 0)
+	tx := cherryredis.GetRds().Set(ctx, key, data, 0)
 	if tx.Err() != nil {
 		return err
 	}

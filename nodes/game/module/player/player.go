@@ -5,6 +5,7 @@ import (
 	clog "gameserver/cherry/logger"
 	"gameserver/cherry/net/parser/pomelo"
 	cproto "gameserver/cherry/net/proto"
+	"gameserver/internal/cache"
 	"gameserver/internal/code"
 	"gameserver/internal/event"
 	"gameserver/internal/pb"
@@ -19,18 +20,17 @@ type (
 		pomelo.ActorBase
 		IsOnline bool // 玩家是否在线
 		Id       int64
-		Item
+		*ActorItem
 	}
 )
 
 func (p *ActorPlayer) OnInit() {
 	clog.Debugf("[ActorPlayer] path = %s init!", p.PathString())
-	p.Item = Item{p}
-	p.Item.OnInit()
 	// 注册 session关闭的remote函数(网关触发连接断开后，会调用RPC发送该消息)
 	p.Remote().Register("sessionClose", p.sessionClose)
 	p.Local().Register("enter", p.playerEnter) // 注册 进入角色
-
+	p.Local().Register("itemInfo", p.ActorItem.getInfo)
+	p.Local().Register("itemUse", p.ActorItem.use)
 }
 
 func (p *ActorPlayer) OnStop() {
@@ -41,7 +41,6 @@ func (p *ActorPlayer) OnStop() {
 func (p *ActorPlayer) sessionClose() {
 	online.UnBindPlayer(p.Id)
 	p.IsOnline = false
-
 	logoutEvent := event.NewPlayerLogout(p.ActorID(), p.Id)
 	p.PostEvent(&logoutEvent)
 	p.Exit()
@@ -62,9 +61,19 @@ func (p *ActorPlayer) playerEnter(session *cproto.Session, req *pb.C2SPlayerEnte
 		// 创建角色
 		playerTable = p.playerCreate(session)
 	}
-
 	if playerTable == nil {
 		p.ResponseCode(session, code.PlayerIdError)
+		return
+	}
+	serverId := session.GetInt32(sessionKey.ServerID)
+	server, err := cache.GetServerInfo(serverId)
+	if err != nil {
+		return
+	}
+
+	if server.Status == 0 && playerTable.White == 0 {
+		//维护中，不是白名单不允许进游戏
+		p.ResponseCode(session, code.PlayerDenyLogin)
 		return
 	}
 
@@ -109,15 +118,15 @@ func (p *ActorPlayer) playerCreate(session *cproto.Session) *db.PlayerTable {
 		p.ResponseCode(session, errCode)
 		return nil
 	}
-	db.LogRegisterRepository.Add(&db.LogRegister{
-		Device:   newPlayerTable.OpenId,
-		Channel:  newPlayerTable.Channel,
-		Platform: newPlayerTable.Platform,
-		Time:     newPlayerTable.CreateTime,
-	})
+	//db.LogRegisterRepository.Add(&db.LogRegister{
+	//	Device:   newPlayerTable.OpenId,
+	//	Channel:  newPlayerTable.Channel,
+	//	Platform: newPlayerTable.Platform,
+	//	Time:     newPlayerTable.CreateTime,
+	//})
 	// 抛出角色创建事件
-	//playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, newPlayerTable.Nickname, newPlayerTable.Gender)
-	//p.PostEvent(&playerCreateEvent)
+	playerCreateEvent := event.NewPlayerCreate(newPlayerTable.ID, newPlayerTable.Nickname, newPlayerTable.Gender)
+	p.PostEvent(&playerCreateEvent)
 	return newPlayerTable
 }
 

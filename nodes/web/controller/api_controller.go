@@ -4,12 +4,12 @@ import (
 	cherryGin "gameserver/cherry/components/gin"
 	cstring "gameserver/cherry/extend/string"
 	cherryLogger "gameserver/cherry/logger"
+	"gameserver/internal/cache"
 	"gameserver/internal/code"
 	"gameserver/internal/data"
 	sessionKey "gameserver/internal/session_key"
 	"gameserver/internal/token"
 	"gameserver/internal/utils"
-	"gameserver/nodes/web/cache"
 	"gameserver/nodes/web/sdk"
 )
 
@@ -18,7 +18,6 @@ type Controller struct {
 }
 
 func (p *Controller) Init() {
-	cache.InitServer()
 	group := p.Group("/")
 	group.GET("/api/serverInfo/:channel", p.serverInfo)
 }
@@ -102,7 +101,7 @@ func (p *Controller) serverInfo(c *cherryGin.Context) {
 			}
 		} else {
 			//根据最小负载的game节点
-			nodeIds, ok := utils.GetAllGameNodeIdByRank()
+			nodeIds, ok := cache.GetAllGameNodeIdByRank()
 			if ok != nil {
 				cherryLogger.Warnf("get game node id error. error=%s", ok)
 				code.RenderResult(c, code.ServerError)

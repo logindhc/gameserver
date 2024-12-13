@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	cherryredis "gameserver/cherry/components/redis"
 	cherryLogger "gameserver/cherry/logger"
@@ -15,12 +14,12 @@ var (
 )
 
 func InitServer() {
-	keys, err := cherryredis.GetRds().Keys(context.Background(), RedisServer+"*").Result()
+	keys, err := cherryredis.GetRds().Keys(ctx, RedisServer+"*").Result()
 	if err != nil {
 		return
 	}
 	for _, key := range keys {
-		res, err := cherryredis.GetRds().Get(context.Background(), key).Result()
+		res, err := cherryredis.GetRds().Get(ctx, key).Result()
 		server := new(Server)
 		if err != nil {
 			continue
@@ -49,7 +48,7 @@ func GetServerInfo(serverId int32) (*Server, error) {
 		return value.(*Server), nil
 	}
 	key := fmt.Sprintf("%s%v", RedisServer, serverId)
-	res, err := cherryredis.GetRds().Get(context.Background(), key).Result()
+	res, err := cherryredis.GetRds().Get(ctx, key).Result()
 	server := new(Server)
 	if err != nil {
 		cherryLogger.Warnf("get server info error. serverId=%v, error=%s", serverId, err)
@@ -70,7 +69,7 @@ func UpdateServerInfo(server *Server) error {
 		cherryLogger.Warnf("update server info error. server=%v, error=%s", server, err)
 		return err
 	}
-	tx := cherryredis.GetRds().Set(context.Background(), key, data, 0)
+	tx := cherryredis.GetRds().Set(ctx, key, data, 0)
 	if tx.Err() != nil {
 		cherryLogger.Warnf("update server info error. server=%v, error=%s", server, tx.Err())
 		return err

@@ -7,6 +7,7 @@ import (
 	"gameserver/internal/code"
 	"gameserver/internal/constant"
 	"gameserver/internal/pb"
+	"gameserver/internal/rpc"
 )
 
 // route = 节点类型.节点handler.remote函数
@@ -43,15 +44,15 @@ func Ping(app cfacade.IApplication) bool {
 }
 
 // GetAccountInfo 获取帐号UID和区服信息
-func GetAccountInfo(app cfacade.IApplication, channel, platform int32, openId string) (*pb.AccountInfo, int32) {
-	req := &pb.AccountInfo{
+func GetAccountInfo(app cfacade.IApplication, channel, platform int32, openId string) (*rpc.AccountInfo, int32) {
+	req := &rpc.AccountInfo{
 		Channel:  channel,
 		Platform: platform,
 		OpenId:   openId,
 	}
 
 	targetPath := GetTargetPath(app, fmt.Sprintf(accountActor, channel, openId))
-	rsp := &pb.AccountInfo{}
+	rsp := &rpc.AccountInfo{}
 	errCode := app.ActorSystem().CallWait(sourcePath, targetPath, getAccountInfo, req, rsp)
 	if code.IsFail(errCode) {
 		clog.Warnf("[GetAccountInfo] errCode = %v", errCode)

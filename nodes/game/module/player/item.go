@@ -7,18 +7,29 @@ import (
 )
 
 type (
-	Item struct {
+	ActorItem struct {
 		*ActorPlayer
 	}
 )
 
-func (i *Item) OnInit() {
-	clog.Debugf("[Item] path = %s init!", i.PathString())
-	i.Local().Register("getItemInfo", i.getItemInfo) // 注册 查看角色
+func NewActorItem(player *ActorPlayer) *ActorItem {
+	return &ActorItem{player}
 }
 
-func (i *Item) getItemInfo(session *cproto.Session, _ *pb.None) {
-	playerId := session.Uid
+func (p *ActorItem) getInfo(session *cproto.Session, _ *pb.None) {
+	response := &pb.S2CItemInfo{
+		Items: map[int32]int64{
+			1: 1,
+		},
+	}
+	p.Response(session, response)
+}
 
-	clog.Debugf("[Item] getInfo playerId = %d", playerId)
+// use 玩家使用道具
+func (p *ActorItem) use(session *cproto.Session, req *pb.C2SItemUse) {
+	itemId := req.ItemId
+	count := req.Count
+	clog.Debugf("[%d] [useItem] itemId = %d, count = %d", p.Id, itemId, count)
+	response := &pb.S2CItemUse{}
+	p.Response(session, response)
 }

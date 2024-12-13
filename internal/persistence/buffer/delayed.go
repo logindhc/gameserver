@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const batchSize = 1000
+
 type DelayedBuffer[K string | int64, T any] struct {
 	cache      cache.ICache[K, T]
 	db         *gorm.DB
@@ -127,9 +129,21 @@ func (d *DelayedBuffer[K, T]) flush() {
 		entities = append(entities, entity)
 		f.Remove(id)
 	}
-	tx := d.db.Save(entities)
-	if tx.Error != nil {
-		clog.Errorf("%s# 批量更新失败 %v", d.prefix, tx.Error)
+
+	for i := 0; i < len(entities); i += batchSize {
+		end := i + batchSize
+		if end > len(entities) {
+			end = len(entities)
+		}
+		batch := entities[i:end]
+		if err := d.db.Save(&batch).Error; err != nil {
+			clog.Errorf("%s# Batch save failed: %v", d.prefix, err)
+		}
 	}
+	//
+	//tx := d.db.Save(entities)
+	//if tx.Error != nil {
+	//	clog.Errorf("%s# 批量更新失败 %v", d.prefix, tx.Error)
+	//}
 	clog.Debugf("%s# [%p] delayerd sync flush num %d success %d, cos %v", d.prefix, flushes, size, count, time.Since(start))
 }

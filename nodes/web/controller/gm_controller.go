@@ -4,8 +4,8 @@ import (
 	cherryGin "gameserver/cherry/components/gin"
 	cstring "gameserver/cherry/extend/string"
 	cherryLogger "gameserver/cherry/logger"
+	"gameserver/internal/cache"
 	"gameserver/internal/code"
-	"gameserver/nodes/web/cache"
 )
 
 type GMController struct {

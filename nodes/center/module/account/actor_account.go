@@ -1,14 +1,13 @@
 package account
 
 import (
-	"fmt"
 	cstring "gameserver/cherry/extend/string"
 	cherryLogger "gameserver/cherry/logger"
 	cactor "gameserver/cherry/net/actor"
+	"gameserver/internal/cache"
 	"gameserver/internal/code"
 	"gameserver/internal/constant"
-	"gameserver/internal/pb"
-	"gameserver/internal/utils"
+	"gameserver/internal/rpc"
 	"gameserver/nodes/center/db"
 )
 
@@ -24,20 +23,21 @@ func (a *ActorAccount) OnInit() {
 }
 
 // getAccountInfo 获取uid
-func (a *ActorAccount) getAccountInfo(req *pb.AccountInfo) (*pb.AccountInfo, int32) {
-	id := fmt.Sprintf("%d_%d_%s", req.Channel, req.Platform, req.OpenId)
-	account := db.AccountRepository.Get(id)
+func (a *ActorAccount) getAccountInfo(req *rpc.AccountInfo) (*rpc.AccountInfo, int32) {
+	account := db.GetAccount(req.OpenId)
 	if account != nil {
+		req.AccountId = account.ID
 		req.Uid = account.UID
 		req.ServerId = account.ServerId
 		return req, code.OK
 	}
 	serverId := a.getServerId()
-	account = db.CreateAccount(id, req.Channel, req.OpenId, req.Platform, serverId)
+	account = db.CreateAccount(req.Channel, req.OpenId, req.Platform, serverId)
 
 	if account.UID == 0 || serverId == 0 {
 		return nil, code.AccountAuthFail
 	}
+	req.AccountId = account.ID
 	req.Uid = account.UID
 	req.ServerId = serverId
 	return req, code.OK
@@ -46,7 +46,7 @@ func (a *ActorAccount) getAccountInfo(req *pb.AccountInfo) (*pb.AccountInfo, int
 func (a *ActorAccount) getServerId() int32 {
 	//根据最小负载的game节点
 	serverId := int32(0)
-	nodeIds, err := utils.GetAllGameNodeIdByRank()
+	nodeIds, err := cache.GetAllGameNodeIdByRank()
 	if err != nil {
 		cherryLogger.Warnf("get game node id error. error=%s", err)
 		return serverId

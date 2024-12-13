@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	cherryredis "gameserver/cherry/components/redis"
 	jsoniter "github.com/json-iterator/go"
@@ -19,7 +18,7 @@ type IpWhite struct {
 
 func GetIpWhite(ip int32) (*IpWhite, error) {
 	key := fmt.Sprintf("%s%v", RedisIpWhite, ip)
-	res, err := cherryredis.GetRds().Get(context.Background(), key).Result()
+	res, err := cherryredis.GetRds().Get(ctx, key).Result()
 	ipWhite := new(IpWhite)
 	if err != nil {
 		return nil, err
@@ -37,7 +36,7 @@ func UpdateIpWhite(ipWhite *IpWhite) error {
 	if err != nil {
 		return err
 	}
-	tx := cherryredis.GetRds().Set(context.Background(), key, data, 0)
+	tx := cherryredis.GetRds().Set(ctx, key, data, 0)
 	if tx.Err() != nil {
 		return err
 	}
@@ -46,7 +45,7 @@ func UpdateIpWhite(ipWhite *IpWhite) error {
 
 func DelIpWhite(ip int32) error {
 	key := fmt.Sprintf("%s%v", RedisIpWhite, ip)
-	tx := cherryredis.GetRds().Del(context.Background(), key)
+	tx := cherryredis.GetRds().Del(ctx, key)
 	if tx.Err() != nil {
 		return tx.Err()
 	}

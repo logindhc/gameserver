@@ -36,7 +36,7 @@
         "address": "",
         "__settings__": {
           "db_id_list" : {
-            "default": "center_db_1"
+            "default": "center"
           },
           "ref_logger": "center_log"
         },
@@ -74,22 +74,22 @@
     ],
     "game": [
       {
-        "node_id": "10001",
+        "node_id": "1",
         "__settings__": {
           "db_id_list" : {
-            "default": "game_db_1",
-            "log": "game_log_1"
+            "default": "game_1",
+            "log": "log_1"
           },
-          "ref_logger": "game_log"
+          "ref_logger": "game1_log"
         },
         "enable": true
       },
       {
-        "node_id": "10002",
+        "node_id": "2",
         "__settings__": {
           "db_id_list" : {
-            "default": "game_db_2",
-            "log": "game_log_2"
+            "default": "game_2",
+            "log": "log_2"
           },
           "ref_logger": "game2_log"
         },
@@ -138,13 +138,13 @@
       "file_link_path": "logs/gate2.log",
       "file_path_format": "logs/gate2_%Y%m%d%H%M.log"
     },
-    "game_log": {
+    "game1_log": {
       "level": "debug",
       "enable_console": true,
       "enable_write_file": true,
       "time_format" : "2006-01-02 15:04:05.000",
-      "file_link_path": "logs/game.log",
-      "file_path_format": "logs/game_%Y%m%d%H%M.log"
+      "file_link_path": "logs/game1.log",
+      "file_path_format": "logs/game1_%Y%m%d%H%M.log"
     },
     "game2_log": {
       "level": "debug",
@@ -181,9 +181,9 @@
     "center_db_group": [
       {
         "enable": true,
-        "db_id": "center_db_1",
+        "db_id": "center",
         "dsn" : "",
-        "db_name": "center",
+        "db_name": "dhc_x3_center",
         "host": "192.168.1.113",
         "user_name": "root",
         "password": "123456",
@@ -195,9 +195,9 @@
     "game_db_group": [
       {
         "enable": true,
-        "db_id": "game_db_1",
+        "db_id": "game_1",
         "dsn" : "",
-        "db_name": "game_db_1",
+        "db_name": "dhc_x3_game_1",
         "host": "192.168.1.113",
         "user_name": "root",
         "password": "123456",
@@ -207,9 +207,9 @@
       },
       {
         "enable": true,
-        "db_id": "game_log_1",
+        "db_id": "log_1",
         "dsn" : "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local&timeout=5s&multiStatements=true",
-        "db_name": "game_log_1",
+        "db_name": "dhc_x3_log_1",
         "host": "192.168.1.113",
         "user_name": "root",
         "password": "123456",
@@ -219,9 +219,9 @@
       },
       {
         "enable": true,
-        "db_id": "game_db_2",
+        "db_id": "game_2",
         "dsn" : "",
-        "db_name": "game_db_2",
+        "db_name": "dhc_x3_game_2",
         "host": "192.168.1.113",
         "user_name": "root",
         "password": "123456",
@@ -231,9 +231,9 @@
       },
       {
         "enable": true,
-        "db_id": "game_log_2",
+        "db_id": "log_2",
         "dsn" : "%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local&timeout=5s&multiStatements=true",
-        "db_name": "game_log_2",
+        "db_name": "dhc_x3_log_2",
         "host": "192.168.1.113",
         "user_name": "root",
         "password": "123456",

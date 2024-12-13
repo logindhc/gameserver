@@ -73,6 +73,7 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 		return
 	}
 
+	//玩家id
 	uid := info.Uid
 	p.checkGateSession(uid)
 
@@ -81,11 +82,12 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 		agent.ResponseCode(session, code.AccountBindFail, true)
 		return
 	}
-
+	agent.Session().Set(sessionKey.AccountID, cstring.ToString(info.AccountId))
 	agent.Session().Set(sessionKey.ServerID, cstring.ToString(info.ServerId))
 	agent.Session().Set(sessionKey.ChannelID, cstring.ToString(userToken.Channel))
 	agent.Session().Set(sessionKey.PlatformID, cstring.ToString(userToken.Platform))
 	agent.Session().Set(sessionKey.OpenID, cstring.ToString(userToken.OpenId))
+
 	response := &pb.S2CLogin{
 		Uid:    uid,
 		Params: nil,

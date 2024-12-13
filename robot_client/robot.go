@@ -121,14 +121,39 @@ func (p *Robot) ActorEnter() error {
 
 // GetItemInfo 角色获取道具信息
 func (p *Robot) GetItemInfo() error {
-	route := "game.player.getItemInfo"
+	route := "game.player.itemInfo"
 	req := &pb.None{}
 
-	_, err := p.Request(route, req)
+	msg, err := p.Request(route, req)
 	if err != nil {
 		return err
 	}
-	p.Debugf("[%s] [getItemInfo] response PlayerID = %d,PlayerName = %s", p.TagName, p.PlayerId, p.PlayerName)
+	rsp := &pb.S2CItemInfo{}
+	err = p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		return err
+	}
+	p.Debugf("[%s] [getItemInfo] response ret = %v", p.TagName, rsp)
+	return nil
+}
+
+func (p *Robot) UseItem() error {
+	route := "game.player.itemUse"
+	req := &pb.C2SItemUse{
+		ItemId: 1,
+		Count:  1,
+	}
+
+	msg, err := p.Request(route, req)
+	if err != nil {
+		return err
+	}
+	rsp := &pb.S2CItemUse{}
+	err = p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		return err
+	}
+	p.Debugf("[%s] [getItemInfo] response ret = %v", p.TagName, rsp)
 	return nil
 }
 

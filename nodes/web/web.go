@@ -7,6 +7,7 @@ import (
 	cherryredis "gameserver/cherry/components/redis"
 	cherryFile "gameserver/cherry/extend/file"
 	checkCenter "gameserver/internal/component/check_center"
+	serverinit "gameserver/internal/component/init_server"
 	"gameserver/internal/data"
 	"gameserver/nodes/web/controller"
 	"gameserver/nodes/web/sdk"
@@ -28,6 +29,9 @@ func Run(profileFilePath, nodeId string) {
 
 	// 注册redis组件
 	app.Register(cherryredis.New())
+
+	// 注册初始化game节点缓存组件
+	app.Register(serverinit.New())
 
 	// 加载http server组件
 	httpServerComponent(app)

@@ -12,25 +12,36 @@ import (
 )
 
 var (
-	maxRobotNum = 2                       // 运行x个机器人
-	url         = "http://127.0.0.1:8081" // web node
-	channel     = "101"                   // 测试的渠道
-	platform    = "3"                     // 测试的平台
-	printLog    = false                   // 是否输出详细日志
+	maxRobotNum = 10000                  // 运行x个机器人
+	url         = "http://0.0.0.0:10000" // web node
+	channel     = "101"                  // 测试的渠道
+	platform    = "3"                    // 测试的平台
+	printLog    = false                  // 是否输出详细日志
 )
 
 func main() {
+	//if len(os.Args) > 0 {
+	//	client(os.Args[0])
+	//	return
+	//}
+
+	//client("dhc9")
+
+	runRobot()
+}
+
+func runRobot() {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 
 	accounts := make(map[string]string)
 	for i := 1; i <= maxRobotNum; i++ {
-		key := fmt.Sprintf("bb_%d", i)
+		key := fmt.Sprintf("test_%d", i)
 		accounts[key] = key
 	}
 
 	for userName, _ := range accounts {
-		time.Sleep(time.Duration(rand.Int31n(30)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Int31n(20)) * time.Millisecond)
 		go RunRobot(url, userName, printLog)
 	}
 
@@ -90,6 +101,11 @@ func RunRobot(url, userName string, printLog bool) *Robot {
 	elapsedTime := cli.StartTime.DiffInMillisecond(ctime.Now())
 	clog.Debugf("[%s] is enter to game. elapsed time:%dms", cli.TagName, elapsedTime)
 
+	err = cli.GetItemInfo()
+	if err != nil {
+
+		return nil
+	}
 	//cli.Disconnect()
 
 	return cli

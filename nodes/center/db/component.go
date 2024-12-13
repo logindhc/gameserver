@@ -32,6 +32,8 @@ func (c *Component) OnAfterInit() {
 	c.AutoMigrate(defaultModels, nil, false)
 	persistence.Start(defaultModels)
 
+	addOnload(loadDevAccount)
+	addOnload(loadMaxID)
 	for _, fn := range onLoadFuncList {
 		cherryUtils.Try(fn, func(errString string) {
 			cherryLogger.Warnf(errString)
