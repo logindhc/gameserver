@@ -3,7 +3,6 @@ package pomeloPacket
 import (
 	"bytes"
 	"fmt"
-	clog "gameserver/cherry/logger"
 	"io"
 	"net"
 
@@ -134,7 +133,6 @@ func Read(conn net.Conn) ([]*Packet, bool, error) {
 	if err != nil {
 		return nil, true, err
 	}
-	clog.Debugf("read message: %s", string(msgData))
 
 	if len(msgData) < msgSize {
 		return nil, true, cerr.PacketMsgSmallerThanExpected
