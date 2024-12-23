@@ -1,0 +1,26 @@
+// TODO message结构的属性名请使用 驼峰小写字母开始
+// TODO enum枚举的属性名请使用 驼峰大写字母开始
+syntax = "proto3";
+option go_package = "/pb";
+package pb;
+
+// 英雄信息
+// request route:game.player.heroInfo
+// push route:heroInfo
+message S2CHeroInfo {
+  repeated int32 heros = 1;//英雄集合
+}
+
+// 英雄升级
+// request route:game.player.heroUp
+message C2SHeroUp {
+  int32 heroId = 1; // 英雄id
+}
+// 英雄升级
+// response route:game.player.heroUp
+message S2CHeroUp {
+  int32 heroId = 1; //升级之后的英雄id
+  int32 delHeroId = 2; //需要删除升级之前的英雄id
+}
+
+

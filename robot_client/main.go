@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	maxRobotNum = 10000                  // 运行x个机器人
+	maxRobotNum = 5000                   // 运行x个机器人
 	url         = "http://0.0.0.0:10000" // web node
 	channel     = "101"                  // 测试的渠道
 	platform    = "3"                    // 测试的平台
@@ -25,9 +25,9 @@ func main() {
 	//	return
 	//}
 
-	//client("dhc9")
+	client("dhc33")
 
-	runRobot()
+	//runRobot()
 }
 
 func runRobot() {
@@ -57,6 +57,10 @@ func RunRobot(url, userName string, printLog bool) *Robot {
 			pomeloClient.WithErrorBreak(true),
 		),
 	)
+	cli.On("currencyInfo", cli.CurrencyInfo)
+	cli.On("heroInfo", cli.HeroInfo)
+	cli.On("itemInfo", cli.ItemInfo)
+	cli.On("resUpdate", cli.ResUpdate)
 	cli.PrintLog = printLog
 
 	// 登录获取token
@@ -65,14 +69,23 @@ func RunRobot(url, userName string, printLog bool) *Robot {
 		return nil
 	}
 
+	//split := strings.Split(cli.address, ":")
+	//port, _ := strconv.Atoi(split[1])
+	//address := fmt.Sprintf("%s:%d", split[0], port+1)
+	//// 根据地址连接网关
+	//if err := cli.ConnectToTCP(address); err != nil {
+	//	clog.Error(err)
+	//	return nil
+	//}
+	address := cli.address
 	// 根据地址连接网关
-	if err := cli.ConnectToWS(cli.address, ""); err != nil {
+	if err := cli.ConnectToWS(address, ""); err != nil {
 		clog.Error(err)
 		return nil
 	}
 
 	if cli.PrintLog {
-		clog.Infof("ws connect %s is ok", cli.address)
+		clog.Infof("connect %s is ok", address)
 	}
 
 	// 随机休眠

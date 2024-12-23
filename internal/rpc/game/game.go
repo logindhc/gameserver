@@ -31,5 +31,5 @@ func SessionClose(app cfacade.IApplication, session *cproto.Session) {
 		Value: session.Uid,
 	})
 
-	//clog.Infof("send close session to game node. [node = %s, uid = %d]", nodeId, session.Uid)
+	clog.Infof("send close session to game node. [node = %s, uid = %d]", nodeId, session.Uid)
 }

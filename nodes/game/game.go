@@ -19,6 +19,7 @@ import (
 	"gameserver/nodes/game/db"
 	"gameserver/nodes/game/job"
 	"gameserver/nodes/game/module/player"
+	"gameserver/nodes/game/res/resmgr"
 	"os"
 	"strings"
 )
@@ -51,6 +52,8 @@ func Run(profileFilePath, nodeId string) {
 	app.Register(db.New())
 	// 注册初始化game节点缓存组件
 	app.Register(serverinit.New())
+	// 注册资源管理组件
+	app.Register(resmgr.New())
 
 	app.AddActors(
 		&job.ActorJob{},

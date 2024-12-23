@@ -19,11 +19,18 @@ type Controller struct {
 
 func (p *Controller) Init() {
 	group := p.Group("/")
-	group.GET("/api/serverInfo/:channel", p.serverInfo)
+	group.GET("/index", p.index)
+	group.GET("/api/serverInfo", p.serverInfo)
+	group.POST("/api/serverInfo", p.serverInfo)
+}
+
+// index h5客户端
+func (p *Controller) index(c *cherryGin.Context) {
+	c.HTML200("index.html")
 }
 
 // login 根据channel获取sdkConfig，与第三方进行帐号登陆效验,验证完毕后，返回token和连接地址
-// http://127.0.0.1/serverInfo?channel=101&code=test11&platform=3&time=123&sign=123&version=1.1
+// http://127.0.0.1:10000/api/serverInfo?sign=2121&time=12131&code=dhc&channel=101&platform=3&version=1
 func (p *Controller) serverInfo(c *cherryGin.Context) {
 	channel := c.GetInt32("channel", 0, true)
 	if channel < 1 {

@@ -13,6 +13,7 @@ import (
 	rpcCenter "gameserver/internal/rpc/center"
 	sessionKey "gameserver/internal/session_key"
 	"gameserver/internal/token"
+	"time"
 )
 
 var (
@@ -55,7 +56,7 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 	// 验证token
 	userToken, errCode := p.validateToken(req.Token)
 	if code.IsFail(errCode) {
-		agent.Response(session, errCode)
+		agent.ResponseCode(session, errCode, true)
 		return
 	}
 
@@ -75,6 +76,7 @@ func (p *ActorAgent) login(session *cproto.Session, req *pb.C2SLogin) {
 
 	//玩家id
 	uid := info.Uid
+
 	p.checkGateSession(uid)
 
 	if err := agent.Bind(uid); err != nil {
@@ -118,6 +120,8 @@ func (p *ActorAgent) validateToken(base64Token string) (*token.Token, int32) {
 func (p *ActorAgent) checkGateSession(uid cfacade.UID) {
 	if agent, found := pomelo.GetAgentWithUID(uid); found {
 		agent.Kick(duplicateLoginCode, true)
+		//这里休眠一下，等旧的agent的close处理完毕再绑定新的session
+		time.Sleep(1 * time.Nanosecond)
 	}
 
 	rsp := &cproto.PomeloKick{

@@ -1,0 +1,7 @@
+[
+	{"id":1,"des":"货币(金币，银币，钻石)","configName":"CurrencyConfig"},
+	{"id":2,"des":"道具(宝箱，英雄碎片)","configName":"ItemConfig"},
+	{"id":3,"des":"英雄","configName":"HeroConfig"},
+	{"id":4,"des":"战斗经验","configName":"前端用"},
+	{"id":5,"des":"宝箱经验","configName":"ShopBoxLvConfig"}
+]

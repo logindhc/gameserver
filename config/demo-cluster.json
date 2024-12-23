@@ -67,7 +67,8 @@
         "address": "0.0.0.0:10000",
         "__settings__": {
           "ref_logger": "web_log",
-          "md5_key":""
+          "md5_key":"",
+          "@md5_key": "9%8Yucsa%bvyS!eK"
         },
         "enable": true
       }

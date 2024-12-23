@@ -10,3 +10,7 @@ const (
 
 	GameOnlineKey = "game:online:"
 )
+
+const (
+	PlayerInitResID = 1 //玩家初始资源
+)

@@ -1,0 +1,20 @@
+// TODO message结构的属性名请使用 驼峰小写字母开始
+// TODO enum枚举的属性名请使用 驼峰大写字母开始
+syntax = "proto3";
+option go_package = "/pb";
+package pb;
+
+// 玩家基本信息
+message Player {
+  int64  playerId = 1;    // 玩家ID
+  string playerName = 2;  // 玩家昵称
+  int32  gender = 3;      // 角色性别
+  int64  createTime = 5;  // 创建时间
+}
+
+//资源信息
+message ResInfo{
+  int32 baseType = 1;//资源类型
+  int32 id = 2;//资源id
+  int32 count = 3;//数量
+}

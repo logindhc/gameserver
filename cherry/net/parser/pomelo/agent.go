@@ -263,7 +263,11 @@ func (a *Agent) processPacket(packet *pomeloPacket.Packet) {
 		a.Close()
 		return
 	}
-
+	clog.Debugf("[sid = %s,uid = %d] Receive packet. [packet = %+v]",
+		a.SID(),
+		a.UID(),
+		packet,
+	)
 	process(a, packet)
 	// update last time
 	a.SetLastAt()
@@ -300,7 +304,6 @@ func (a *Agent) processPending(data *pendingMessage) {
 		Data:  payload,
 		Error: data.err,
 	}
-
 	// encode message
 	em, err := pomeloMessage.Encode(m)
 	if err != nil {
@@ -325,7 +328,6 @@ func (a *Agent) sendPending(typ pomeloMessage.Type, route string, mid uint32, v 
 		)
 		return
 	}
-
 	if len(a.chPending) >= cmd.writeBacklog {
 		clog.Warnf("[sid = %s,uid = %d] send buffer exceed. [typ = %v, route = %s, mid = %d, val = %+v, err = %v]",
 			a.SID(),

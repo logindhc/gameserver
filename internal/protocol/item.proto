@@ -4,21 +4,24 @@ syntax = "proto3";
 option go_package = "/pb";
 package pb;
 
-// 获取道具信息
-// game.player.itemInfo
+// 道具信息
+// request route:game.player.itemInfo
+// push route:itemInfo
 message S2CItemInfo {
   map<int32, int64> items = 1;//道具集合
 }
 
 // 使用道具
-// game.player.itemUse
+// request route:game.player.itemUse
 message C2SItemUse {
   int32 itemId = 1; // 道具id
   int32 count = 2; // 使用数量
 }
 // 使用道具
-// game.player.itemUse
+// response route:game.player.itemUse
 message S2CItemUse {
+  bool result = 1;
 }
+
 
 

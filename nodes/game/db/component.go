@@ -16,6 +16,10 @@ var (
 	// 表自动生成手动注册
 	defaultModels = []interface{}{
 		&PlayerTable{},
+		&CurrencyTable{},
+		&ItemTable{},
+		&HeroTable{},
+		&ShopTable{},
 	}
 	logModels = []interface{}{
 		&LogLogin{},

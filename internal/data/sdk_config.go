@@ -6,6 +6,8 @@ import (
 	cherryLogger "gameserver/cherry/logger"
 )
 
+var SdkConfig = &sdkConfig{}
+
 type (
 	SdkRow struct {
 		SdkId         int32             `json:"sdkId"`         // sdk id

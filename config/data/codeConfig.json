@@ -1,6 +1,8 @@
 [
   {"code":0,"message":"成功"},
   {"code":1,"message":"错误"},
+  {"code":2,"message":"参数错误"},
+  {"code":99,"message":"配置错误"},
   {"code":100,"message":"channel错误"},
   {"code":101,"message":"服务器异常"},
   {"code":102,"message":"version错误"},
@@ -15,5 +17,12 @@
   {"code":303,"message":"角色名已存在"},
   {"code":304,"message":"角色创建失败"},
   {"code":305,"message":"角色未登录"},
-  {"code":306,"message":"角色id错误"}
+  {"code":306,"message":"角色id错误"},
+  {"code":401,"message":"金币不足"},
+  {"code":402,"message":"银币不足"},
+  {"code":403,"message":"钻石不足"},
+  {"code":501,"message":"道具不足"},
+  {"code":601,"message":"英雄不存在"},
+  {"code":602,"message":"英雄等级异常"},
+  {"code":603,"message":"英雄已经是最大等级"}
 ]

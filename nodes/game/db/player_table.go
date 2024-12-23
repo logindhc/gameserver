@@ -20,8 +20,6 @@ type PlayerTable struct {
 	ServerId       int32  `gorm:"column:server_id;comment:创角时的游戏服id" json:"serverId"`
 	Nickname       string `gorm:"column:nickname;comment:角色名称" json:"nickname"`
 	Gender         int32  `gorm:"column:gender;comment:角色性别" json:"gender"`
-	Level          int32  `gorm:"column:level;comment:角色等级" json:"level"`
-	Exp            int64  `gorm:"column:exp;comment:角色经验" json:"exp"`
 	CreateTime     int64  `gorm:"column:create_time;comment:创建时间" json:"createTime"`
 	LastLoginTime  int64  `gorm:"column:last_login_time;comment:最后登录时间" json:"lastLoginTime"`
 	LastLogoutTime int64  `gorm:"column:last_logout_time;comment:最后登出时间" json:"LastLogoutTime"`
@@ -66,8 +64,6 @@ func CreatePlayer(session *cproto.Session) (*PlayerTable, int32) {
 		ServerId:   serverId,
 		Nickname:   "",
 		Gender:     0,
-		Level:      1,
-		Exp:        0,
 		CreateTime: cherryTime.Now().ToSecond(),
 		White:      0,
 		GmLevel:    0,

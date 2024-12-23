@@ -1,0 +1,12 @@
+[
+	{"id":1,"exp":600,"minBoxId":10001,"maxBoxId":20001},
+	{"id":2,"exp":1200,"minBoxId":10002,"maxBoxId":20002},
+	{"id":3,"exp":1800,"minBoxId":10003,"maxBoxId":20003},
+	{"id":4,"exp":2400,"minBoxId":10004,"maxBoxId":20004},
+	{"id":5,"exp":3000,"minBoxId":10005,"maxBoxId":20005},
+	{"id":6,"exp":3600,"minBoxId":10006,"maxBoxId":20006},
+	{"id":7,"exp":4200,"minBoxId":10007,"maxBoxId":20007},
+	{"id":8,"exp":4800,"minBoxId":10008,"maxBoxId":20008},
+	{"id":9,"exp":5400,"minBoxId":10009,"maxBoxId":20009},
+	{"id":10,"exp":6000,"minBoxId":10010,"maxBoxId":20010}
+]

@@ -1,0 +1,14 @@
+// TODO message结构的属性名请使用 驼峰小写字母开始
+// TODO enum枚举的属性名请使用 驼峰大写字母开始
+syntax = "proto3";
+option go_package = "/pb";
+package pb;
+
+// 货币信息
+// request route:game.player.currencyInfo
+// push route:currencyInfo
+message S2CCurrencyInfo {
+  map<int32, int64> currencys = 1;//货币集合
+}
+
+

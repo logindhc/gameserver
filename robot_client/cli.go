@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	cstring "gameserver/cherry/extend/string"
 	"os"
 	"os/signal"
 	"strings"
@@ -41,8 +42,37 @@ func scanner(cli *Robot) {
 			}
 			continue
 		} else if split[0] == "use" {
-			err := cli.UseItem()
+			if len(split) < 3 {
+				continue
+			}
+			itemId := split[1]
+			count := split[2]
+			err := cli.UseItem(cstring.ToInt32D(itemId), cstring.ToInt32D(count))
 			if err != nil {
+				cli.Debug(err)
+				continue
+			}
+			continue
+		} else if split[0] == "gm" {
+			if len(split) < 3 {
+				continue
+			}
+			cmd := split[1]
+			args := split[2]
+			err := cli.Gm(cmd, args)
+			if err != nil {
+				cli.Debug(err)
+				continue
+			}
+			continue
+		} else if split[0] == "heroUp" {
+			if len(split) < 2 {
+				continue
+			}
+			heroId := split[1]
+			err := cli.HeroUp(cstring.ToInt32D(heroId))
+			if err != nil {
+				cli.Debug(err)
 				continue
 			}
 			continue

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gameserver/cherry/net/parser/pomelo/message"
 	"gameserver/internal/code"
 	"gameserver/internal/pb"
 	"math/rand"
@@ -41,9 +42,10 @@ func New(client *cherryClient.Client) *Robot {
 // http://172.16.124.137/serverInfo?pid=2126003&account=test1&password=test1
 func (p *Robot) GetServerInfo(url, pCode, channel, platform string) error {
 	// http登陆获取token json对象
-	requestURL := fmt.Sprintf("%s/api/serverInfo/%s", url, channel)
+	requestURL := fmt.Sprintf("%s/api/serverInfo", url)
 	jsonBytes, _, err := cherryHttp.GET(requestURL, map[string]string{
-		"code":     pCode,    //帐号名
+		"code":     pCode, //帐号名
+		"channel":  channel,
 		"platform": platform, //平台id
 		"version":  "1.0",
 	})
@@ -97,9 +99,7 @@ func (p *Robot) UserLogin() error {
 // ActorEnter 角色进入游戏
 func (p *Robot) ActorEnter() error {
 	route := "game.player.enter"
-	req := &pb.C2SPlayerEnter{
-		PlayerId: p.PlayerId,
-	}
+	req := &pb.C2SPlayerEnter{}
 
 	msg, err := p.Request(route, req)
 	if err != nil {
@@ -115,7 +115,7 @@ func (p *Robot) ActorEnter() error {
 
 	p.PlayerName = player.PlayerName
 
-	p.Debugf("[%s] [PlayerEnter] response PlayerID = %d,PlayerName = %s", p.TagName, p.PlayerId, p.PlayerName)
+	p.Debugf("[%s] [PlayerEnter] response %v", p.TagName, rsp)
 	return nil
 }
 
@@ -137,11 +137,11 @@ func (p *Robot) GetItemInfo() error {
 	return nil
 }
 
-func (p *Robot) UseItem() error {
+func (p *Robot) UseItem(itemId, count int32) error {
 	route := "game.player.itemUse"
 	req := &pb.C2SItemUse{
-		ItemId: 1,
-		Count:  1,
+		ItemId: itemId,
+		Count:  count,
 	}
 
 	msg, err := p.Request(route, req)
@@ -153,7 +153,45 @@ func (p *Robot) UseItem() error {
 	if err != nil {
 		return err
 	}
-	p.Debugf("[%s] [getItemInfo] response ret = %v", p.TagName, rsp)
+	p.Debugf("[%s] [%v] response ret = %v", p.TagName, route, rsp)
+	return nil
+}
+
+func (p *Robot) HeroUp(heroId int32) error {
+	route := "game.player.heroUp"
+	req := &pb.C2SHeroUp{
+		HeroId: heroId,
+	}
+
+	msg, err := p.Request(route, req)
+	if err != nil {
+		return err
+	}
+	rsp := &pb.S2CHeroUp{}
+	err = p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		return err
+	}
+	p.Debugf("[%s] [%v] response ret = %v", p.TagName, route, rsp)
+	return nil
+}
+
+func (p *Robot) Gm(cmd, args string) error {
+	route := "game.player.gm"
+	req := &pb.C2SPlayerGM{
+		Cmd:  cmd,
+		Args: args,
+	}
+	msg, err := p.Request(route, req)
+	if err != nil {
+		return err
+	}
+	rsp := &pb.S2CPlayerGM{}
+	err = p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		return err
+	}
+	p.Debugf("[%s] [%v] response ret = %v", p.TagName, route, rsp)
 	return nil
 }
 
@@ -172,4 +210,44 @@ func (p *Robot) Debugf(template string, args ...interface{}) {
 	if p.PrintLog {
 		cherryLogger.Debugf(template, args...)
 	}
+}
+
+func (p *Robot) ResUpdate(msg *pomeloMessage.Message) {
+	rsp := &pb.S2CResUpdate{}
+	err := p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		p.Debugf("ResUpdate fail. [err = %v]", err)
+		return
+	}
+	p.Debugf("[%s] [%v] push ret = %v", p.TagName, msg.Route, rsp)
+}
+
+func (p *Robot) CurrencyInfo(msg *pomeloMessage.Message) {
+	rsp := &pb.S2CCurrencyInfo{}
+	err := p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		p.Debugf("CurrencyInfo fail. [err = %v]", err)
+		return
+	}
+	p.Debugf("[%s] [%v] push ret = %v", p.TagName, msg.Route, rsp)
+}
+
+func (p *Robot) HeroInfo(msg *pomeloMessage.Message) {
+	rsp := &pb.S2CHeroInfo{}
+	err := p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		p.Debugf("HeroInfo fail. [err = %v]", err)
+		return
+	}
+	p.Debugf("[%s] [%v] push ret = %v", p.TagName, msg.Route, rsp)
+}
+
+func (p *Robot) ItemInfo(msg *pomeloMessage.Message) {
+	rsp := &pb.S2CItemInfo{}
+	err := p.Serializer().Unmarshal(msg.Data, rsp)
+	if err != nil {
+		p.Debugf("ItemInfo fail. [err = %v]", err)
+		return
+	}
+	p.Debugf("[%s] [%v] push ret = %v", p.TagName, msg.Route, rsp)
 }

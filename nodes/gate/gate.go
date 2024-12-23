@@ -7,6 +7,7 @@ import (
 	cherryGops "gameserver/cherry/components/gops"
 	cherryString "gameserver/cherry/extend/string"
 	cfacade "gameserver/cherry/facade"
+	clog "gameserver/cherry/logger"
 	cconnector "gameserver/cherry/net/connector"
 	"gameserver/cherry/net/parser/pomelo"
 	"gameserver/cherry/net/parser/simple"
@@ -38,6 +39,12 @@ func Run(profileFilePath, nodeId string) {
 	// 注册数据配表组件，具体详见data-config的使用方法和参数配置
 	app.Register(data.New())
 
+	err := LoadStructsFromDir("./internal/pb")
+	if err != nil {
+		clog.Error(err)
+		return
+	}
+	//PrintStructs()
 	//启动cherry引擎
 	app.Startup()
 }
@@ -45,10 +52,10 @@ func Run(profileFilePath, nodeId string) {
 func buildPomeloParser(app *cherry.AppBuilder) cfacade.INetParser {
 	// 使用pomelo网络数据包解析器
 	agentActor := pomelo.NewActor("user")
-	tcpAddress := cherryString.ToIntD(strings.TrimPrefix(app.Address(), ":"))
+	//tcpAddress := cherryString.ToIntD(strings.TrimPrefix(app.Address(), ":"))
 	//创建一个tcp监听，用于client/robot压测机器人连接网关tcp
-	agentActor.AddConnector(cconnector.NewTCP(fmt.Sprintf(":%v", tcpAddress+1)))
-	//再创建一个websocket监听，用于h5客户端建立连接
+	//agentActor.AddConnector(cconnector.NewTCP(fmt.Sprintf(":%v", tcpAddress+1)))
+	//创建一个websocket监听，用于客户端建立连接
 	agentActor.AddConnector(cconnector.NewWS(app.Address()))
 	//当有新连接创建Agent时，启动一个自定义(ActorAgent)的子actor
 	agentActor.SetOnNewAgent(func(newAgent *pomelo.Agent) {

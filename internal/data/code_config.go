@@ -6,6 +6,8 @@ import (
 	"gameserver/internal/code"
 )
 
+var CodeConfig = &codeConfig{}
+
 type (
 	codeRow struct {
 		Code    int32  `json:"code"`    //提示代码

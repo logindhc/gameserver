@@ -6,16 +6,20 @@ import (
 	"gameserver/internal/types"
 )
 
-var (
-	SdkConfig  = &sdkConfig{}
-	CodeConfig = &codeConfig{}
-)
-
 func New() *cherryDataConfig.Component {
 	dataConfig := cherryDataConfig.New()
 	dataConfig.Register(
-		SdkConfig,
 		CodeConfig,
+		SdkConfig,
+		ShopBoxConfig,
+		ShopBoxLvConfig,
+		DropConfig,
+		ItemConfig,
+		LevelRewardConfig,
+		GameConfig,
+		HeroConfig,
+		ResTypeConfig,
+		CurrencyConfig,
 	)
 	return dataConfig
 }

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "gameserver/cherry/net/proto/proto;cherryProto";
+option go_package = "/gameserver/cherry/net/proto/proto;cherryProto";
 
 package cherryProto;
 

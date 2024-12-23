@@ -1,0 +1,40 @@
+// TODO message结构的属性名请使用 驼峰小写字母开始
+// TODO enum枚举的属性名请使用 驼峰大写字母开始
+syntax = "proto3";
+option go_package = "/pb";
+package pb;
+
+message Shop{
+  int32 shopId = 1;
+  int32 buyCount = 2;
+}
+// 商城信息
+// request route:game.player.shopInfo
+// push route:shopInfo
+message S2CShopInfo {
+  map<int32, Shop> shops = 1;//商城商品集合
+  int32 boxLevel = 2;//宝箱等级
+  int32 boxExp = 3;//宝箱经验
+  int32 refreshCount = 4;//刷新次数
+}
+
+// 刷新商品
+// request route:game.player.shopRefresh
+// push route:shopInfo
+message C2SShopRefresh {
+}
+
+// 购买商品
+// request route:game.player.shopBuy
+message C2SShopBuy {
+  int32 shopId = 1; // 商品ID
+  int32 count = 2; // 数量
+}
+// 购买商品
+// response route:game.player.shopBuy
+message S2CShopBuy {
+  bool result = 1;
+}
+
+
+

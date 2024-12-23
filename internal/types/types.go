@@ -20,6 +20,7 @@ func init() {
 	// 需要通过json解析数据的类型，注册到此
 	register(&I32I32{})
 	register(&I32I64Map{})
+	register(&IntMap{})
 }
 
 func register(t HookType) {

@@ -1,0 +1,22 @@
+[
+	{"id":100101,"itemName":"猴子碎片","itemIcon":"","itemQuality":5,"itemUse":false,"useParm":[]},
+	{"id":100201,"itemName":"狮子碎片","itemIcon":"","itemQuality":1,"itemUse":false,"useParm":[]},
+	{"id":100301,"itemName":"野猪碎片","itemIcon":"","itemQuality":2,"itemUse":false,"useParm":[]},
+	{"id":100401,"itemName":"船长碎片","itemIcon":"","itemQuality":3,"itemUse":false,"useParm":[]},
+	{"id":100501,"itemName":"牛头碎片","itemIcon":"","itemQuality":4,"itemUse":false,"useParm":[]},
+	{"id":100601,"itemName":"浣熊碎片","itemIcon":"","itemQuality":2,"itemUse":false,"useParm":[]},
+	{"id":100701,"itemName":"独角兽碎片","itemIcon":"","itemQuality":4,"itemUse":false,"useParm":[]},
+	{"id":100801,"itemName":"熊猫碎片","itemIcon":"","itemQuality":5,"itemUse":false,"useParm":[]},
+	{"id":100901,"itemName":"鱼人碎片","itemIcon":"","itemQuality":1,"itemUse":false,"useParm":[]},
+	{"id":101001,"itemName":"沙猫碎片","itemIcon":"","itemQuality":3,"itemUse":false,"useParm":[]},
+	{"id":101101,"itemName":"加菲碎片","itemIcon":"","itemQuality":1,"itemUse":false,"useParm":[]},
+	{"id":101201,"itemName":"北极熊碎片","itemIcon":"","itemQuality":2,"itemUse":false,"useParm":[]},
+	{"id":101301,"itemName":"狐狸碎片","itemIcon":"","itemQuality":3,"itemUse":false,"useParm":[]},
+	{"id":101401,"itemName":"人鱼碎片","itemIcon":"","itemQuality":4,"itemUse":false,"useParm":[]},
+	{"id":101501,"itemName":"蛇女碎片","itemIcon":"","itemQuality":5,"itemUse":false,"useParm":[]},
+	{"id":101601,"itemName":"黑豹碎片","itemIcon":"","itemQuality":4,"itemUse":false,"useParm":[]},
+	{"id":101701,"itemName":"猫头鹰碎片","itemIcon":"","itemQuality":3,"itemUse":false,"useParm":[]},
+	{"id":101801,"itemName":"小鹿碎片","itemIcon":"","itemQuality":1,"itemUse":false,"useParm":[]},
+	{"id":101901,"itemName":"企鹅碎片","itemIcon":"","itemQuality":5,"itemUse":false,"useParm":[]},
+	{"id":102001,"itemName":"灰狼碎片","itemIcon":"","itemQuality":2,"itemUse":false,"useParm":[]}
+]

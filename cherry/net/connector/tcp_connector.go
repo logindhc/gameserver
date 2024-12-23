@@ -65,19 +65,19 @@ func (t *TCPConnector) Start() {
 	t.Connector.Start()
 	var tempDelay time.Duration
 	for t.Running() {
-		conn, err := listener.Accept()
-		if err != nil {
+		conn, _err := listener.Accept()
+		if _err != nil {
 			var ne net.Error
-			if errors.As(err, &ne) && ne.Temporary() {
+			if errors.As(_err, &ne) && ne.Temporary() {
 				if tempDelay == 0 {
 					tempDelay = 5 * time.Millisecond
 				} else {
 					tempDelay *= 2
 				}
-				if max := 1 * time.Second; tempDelay > max {
-					tempDelay = max
+				if _max := 1 * time.Second; tempDelay > _max {
+					tempDelay = _max
 				}
-				clog.Infof("accept error: %v; retrying in %v", err, tempDelay)
+				clog.Infof("accept error: %v; retrying in %v", _err, tempDelay)
 				time.Sleep(tempDelay)
 				continue
 			}
